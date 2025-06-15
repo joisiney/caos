@@ -61,35 +61,65 @@ Adotamos os seguintes princípios para garantir a qualidade do código:
 
 ---
 
-## 🚫 Code Smells a Serem Evitados
+## 🚫 Code Smells que Não Queremos no Nosso Projeto
 
-Com base nas definições do Refactoring Guru, seguem outros *code smells* que devem ser evitados:
+Estas são as regras do nosso projeto para manter o código limpo, organizado e fácil de dar manutenção. Evitar esses *code smells* é o nosso compromisso para garantir que o projeto cresça de forma saudável e que todos na equipe consigam trabalhar com prazer. Vamos direto ao ponto:
 
-| Smell                        | Descrição                                                                                        |
-| ---------------------------- | ------------------------------------------------------------------------------------------------ |
-| **Código morto (Dead Code)** | Código que nunca é executado ou que não é mais utilizado.                                        |
-| **Data Clumps**              | Agrupamentos frequentes dos mesmos parâmetros — devem ser encapsulados em objetos.               |
-| **Divergent Change**         | Quando múltiplas mudanças em um único módulo afetam várias responsabilidades diferentes.         |
-| **Shotgun Surgery**          | Uma pequena alteração exige modificações em vários lugares.                                      |
-| **Feature Envy**             | Um módulo acessa excessivamente os dados de outro em vez de pedir que ele mesmo faça o trabalho. |
-| **Inappropriate Intimacy**   | Classes que acessam os detalhes internos umas das outras com muita frequência.                   |
-| **Speculative Generality**   | Código criado "por precaução" para algo que nunca será necessário.                               |
-| **Temporary Field**          | Campos que só são usados em situações muito específicas.                                         |
-| **Primitive Obsession**      | Uso excessivo de tipos primitivos ao invés de criar tipos próprios (models, entities).           |
-| **Message Chains**           | Acesso profundo a métodos em cadeia, como `obj.a().b().c()`.                                     |
-| **Middle Man**               | Classes que apenas delegam chamadas para outros objetos.                                         |
+| Smell                              | Descrição                                                                                          |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Acesso direto ao DOM**           | Não mexa diretamente no DOM. Use o React (ou o framework que adotamos) para cuidar da interface. Isso mantém tudo consistente. |
+| **Classe grande**                  | Classes que fazem de tudo viram um monstro. Divida em classes menores, cada uma com um propósito claro. |
+| **Código duplicado**               | Código repetido é um convite pra erros. Extraia o que se repete em funções ou componentes reutilizáveis. |
+| **Código morto**                   | Aquele trecho que ninguém usa? Jogue fora. Não precisamos de bagagem extra no projeto. |
+| **Comentários explicando código complexo** | Se o código precisa de um parágrafo pra explicar, é hora de simplificar. Código claro não precisa de legenda. |
+| **Conjuntos de dados**             | Parâmetros que sempre andam juntos? Junte eles num objeto. Fica mais fácil de entender e usar. |
+| **Função longa**                   | Funções que parecem um livro? Divida em pedaços menores. Cada função deve fazer uma coisa só, bem feita. |
+| **Funções com muitos parâmetros**  | Função com uma lista enorme de parâmetros é confusa. Agrupe eles num objeto de configuração. |
+| **Inveja de funcionalidade**       | Uma classe fuçando muito nos dados de outra? Deixe a outra fazer o trabalho. Cada um no seu quadrado. |
+| **Intimidade inadequada**          | Classes que sabem demais sobre as outras criam dependências chatas. Reduza essa proximidade. |
+| **Lógica acoplada à UI**           | Lógica de negócio não pertence à camada visual. Coloque ela em arquivos como `use-case.ts`. |
+| **Mudança divergente**             | Um módulo que muda por mil motivos diferentes está errado. Separe por responsabilidade. |
+| **Mutação de estado direto**       | Não altere o estado diretamente. Use os setters dos hooks ou métodos de gerenciamento de estado. |
+| **Nomes genéricos**                | Nomes como `data` ou `info` não dizem nada. Escolha nomes que mostrem exatamente o que a variável faz. |
+| **Obsessão por primitivos**        | Usar só strings e números pra tudo? Crie tipos próprios (como models) pra dar mais significado ao código. |
+| **Cadeias de mensagens**           | Evite coisas como `obj.a().b().c()`. Isso é frágil. Delegue ou encapsule melhor. |
+| **Homem do meio**                  | Classes que só passam recado pra outras não servem pra nada. Corte o intermediário. |
+| **Cirurgia de espingarda**         | Uma mudança pequena que te obriga a mexer em mil lugares? Isso é sinal de acoplamento. Refatore. |
+| **Generalidade especulativa**      | Não crie código "pra caso um dia precise". Foque no que realmente usamos agora. |
+| **Switch ou ifs com muitos casos** | Condicionais gigantes são difíceis de manter. Use mapas de objetos ou funções específicas. |
+| **Campo temporário**               | Variáveis que só aparecem em casos muito específicos? Repense se elas pertencem ali. |
+| **Método longo**                   | Métodos que vão longe demais precisam ser divididos. Cada método deve ter um foco claro. |
+| **Acoplamento excessivo**          | Módulos que dependem demais uns dos outros travam o projeto. Reduza essas amarras. |
+| **Falta de testes unitários**      | Sem testes, qualquer mudança é um salto no escuro. Escreva testes pra garantir que tudo funciona. |
 
-| Smell                                      | Descrição                                                             |
-| ------------------------------------------ | --------------------------------------------------------------------- |
-| **Funções muito longas**                   | Divida funções com muitas responsabilidades em funções menores.       |
-| **Código duplicado**                       | Extraia trechos comuns em funções utilitárias.                        |
-| **Lógica acoplada à UI**                   | Toda lógica deve estar em `use-case.ts`, fora da camada visual.       |
-| **Nomes genéricos**                        | Evite nomes como `data`, `info`, `result`. Prefira nomes descritivos. |
-| **Comentários explicando código complexo** | Prefira simplificar o código do que explicá-lo.                       |
-| **Switch ou ifs com muitos casos**         | Tente quebrar em múltiplas funções ou usar objetos como mapa.         |
-| **Funções com muitos parâmetros**          | Agrupe em objetos de configuração se necessário.                      |
-| **Acesso direto ao DOM**                   | Nunca manipule o DOM diretamente. Use sempre o React.                 |
-| **Mutação de estado direto**               | Use sempre os setters dos hooks ou métodos do estado.                 |
+**Inspiração**: Essas práticas foram inspiradas pelas ideias do [*Refactoring Guru*](https://refactoring.guru/pt-br/refactoring/smells), que nos guiou para escrever código mais limpo e organizado. Adaptamos tudo para o que funciona melhor no nosso projeto!
+
+## ✅ Boas Práticas que Queremos no Nosso Projeto
+
+Estas são as regras do nosso projeto para garantir que o código seja claro, fácil de manter e um prazer de trabalhar. Adotar essas boas práticas é o nosso jeito de construir algo que a equipe possa se orgulhar. Vamos ao que importa:
+
+| Prática                           | Descrição                                                                                          |
+| --------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Retorno antecipado (Early Return)** | Saia de uma função assim que souber o resultado. Evite aninhar condições desnecessariamente. |
+| **Nomes descritivos**             | Use nomes que explicam o propósito de variáveis, funções e classes. Nada de `temp` ou `x`. |
+| **Funções pequenas e focadas**    | Cada função deve fazer uma coisa só e fazer bem. Se está grande, divida em funções menores. |
+| **Encapsulamento de lógica**      | Agrupe lógica relacionada em funções, classes ou módulos. Evite espalhar regras pelo código. |
+| **Uso de tipos próprios**         | Crie modelos ou entidades em vez de usar tipos primitivos soltos. Isso dá mais contexto ao código. |
+| **Imutabilidade de estado**       | Evite mudar estados diretamente. Use cópias ou setters para manter o controle e evitar surpresas. |
+| **Testes unitários completos**    | Escreva testes para cobrir os casos principais. Isso dá confiança pra refatorar sem medo. |
+| **Separação de camadas**          | Mantenha lógica de negócio, interface e acesso a dados em camadas separadas. Nada de misturar tudo. |
+| **Evitar condicionais complexos** | Substitua *ifs* e *switchs* complicados por mapas, polimorfismo ou funções específicas. |
+| **Reutilização de componentes**   | Crie componentes ou funções reutilizáveis para evitar duplicação e facilitar manutenção. |
+| **Validação de entrada**          | Sempre valide dados de entrada em funções ou APIs para evitar erros inesperados. |
+| **Documentação mínima e clara**   | Documente apenas o que não é óbvio no código. Prefira código autoexplicativo a comentários longos. |
+| **Uso de padrões de projeto**     | Aplique padrões como Factory, Strategy ou Observer quando fizerem sentido, mas sem exageros. |
+| **Controle de erros robusto**     | Trate erros de forma consistente, com mensagens claras e recuperação quando possível. |
+| **Formatação consistente**        | Siga as regras de formatação do projeto (use linters!). Código bem formatado é mais fácil de ler. |
+| **Evitar dependências excessivas** | Reduza o acoplamento entre módulos. Injete dependências ou use interfaces para flexibilidade. |
+| **Revisão de código regular**     | Faça code reviews em equipe. Um par de olhos extra sempre ajuda a melhorar a qualidade. |
+| **Performance consciente**        | Otimize apenas onde necessário, mas sempre pense no impacto de loops ou operações pesadas. |
+
+**Inspiração**: Essas regras foram inspiradas pelas ideias do [*Refactoring Guru*](https://refactoring.guru/pt-br/refactoring/smells), que nos ajudou a pensar em como manter o código mais limpo e organizado. Mas aqui, elas são nossas, adaptadas pro que faz sentido no nosso projeto!
 
 Esta arquitetura é altamente indicada para projetos de **médio a grande porte**, com múltiplos módulos, times ou squads. Sua estrutura detalhada promove **consistência, escalabilidade e manutenibilidade** ao longo do tempo.
 
