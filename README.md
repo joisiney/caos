@@ -1,4 +1,4 @@
-# 📘 Khaos
+# 📘 Khaos - wip
 
 O nome deste projeto vem da divindade primordial da mitologia grega: **Khaos**, o vazio original, o berço de toda criação. Assim como no mito, aqui também nasce algo do nada — uma arquitetura front-end clara, modular e escalável.
 
