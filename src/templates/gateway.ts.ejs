@@ -1,0 +1,11 @@
+import { httpClient } from './http';
+import { T<%- nameCapitalized %>Entity } from '@/entities/<%- name %>.entity';
+
+export namespace N<%- nameCapitalized %>Gateway {
+  export type FindOneInput = { id: string };
+}
+
+export const findOne<%- nameCapitalized %>Gateway = async ({ id }: N<%- nameCapitalized %>Gateway.FindOneInput): Promise<T<%- nameCapitalized %>Entity> => {
+  const { data } = await httpClient.get(`/<%- name %>/${id}`);
+  return data;
+}; 

@@ -4,13 +4,15 @@
   "description": "CLI para gerar arquivos baseados na arquitetura do projeto khaos",
   "main": "dist/index.js",
   "bin": {
-    "khaos": "dist/index.js"
+    "tartarus": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsx src/index.ts",
+    "dev": "ts-node src/index.ts",
     "start": "node dist/index.js",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "lint": "eslint src/**/*.{ts,tsx}",
+    "format": "prettier --write src/**/*.{ts,tsx}"
   },
   "keywords": [
     "cli",
@@ -38,17 +40,22 @@
   "author": "Joisiney Leandro",
   "license": "MIT",
   "dependencies": {
-    "commander": "^11.1.0",
-    "inquirer": "^9.2.12",
-    "chalk": "^5.3.0",
-    "fs-extra": "^11.1.1",
-    "handlebars": "^4.7.8"
+    "commander": "^14.0.0",
+    "ejs": "^3.1.10",
+    "fs-extra": "^11.3.0",
+    "inquirer": "^8.2.6",
+    "simple-git": "^3.28.0"
   },
   "devDependencies": {
-    "@types/node": "^20.8.0",
-    "@types/inquirer": "^9.0.7",
+    "@types/ejs": "^3.1.5",
     "@types/fs-extra": "^11.0.4",
-    "typescript": "^5.2.2",
-    "tsx": "^3.14.0"
+    "@types/inquirer": "^8.2.10",
+    "@types/node": "^24.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.34.0",
+    "@typescript-eslint/parser": "^8.34.0",
+    "eslint": "^9.29.0",
+    "prettier": "^3.5.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   }
-} 
+}
