@@ -1,0 +1,54 @@
+{
+  "name": "khaos-cli",
+  "version": "1.0.0",
+  "description": "CLI para gerar arquivos baseados na arquitetura do projeto khaos",
+  "main": "dist/index.js",
+  "bin": {
+    "khaos": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "cli",
+    "generator",
+    "khaos",
+    "tartarus",
+    "architecture",
+    "react",
+    "react-native",
+    "expo",
+    "typescript",
+    "zod",
+    "zod-validation",
+    "solid",
+    "kiss",
+    "composition",
+    "clean-code",
+    "clean-architecture",
+    "clean-code-architecture",
+    "clean-code-architecture-react",
+    "clean-code-architecture-react-native",
+    "clean-code-architecture-expo",
+    "expo-router"
+  ],
+  "author": "Joisiney Leandro",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "inquirer": "^9.2.12",
+    "chalk": "^5.3.0",
+    "fs-extra": "^11.1.1",
+    "handlebars": "^4.7.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "@types/inquirer": "^9.0.7",
+    "@types/fs-extra": "^11.0.4",
+    "typescript": "^5.2.2",
+    "tsx": "^3.14.0"
+  }
+} 
