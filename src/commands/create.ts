@@ -4,6 +4,8 @@ import ejs from 'ejs';
 import fs from 'fs-extra';
 import path from 'path';
 import { simpleGit } from 'simple-git';
+import { loadConfig } from '../utils/config';
+import { suggestName, sanitizeName, toPascalCase, createSpinner, isKhaosProject } from '../utils/helpers';
 
 export function setupCreateCommand(program: Command) {
   program
@@ -11,9 +13,30 @@ export function setupCreateCommand(program: Command) {
     .description('Cria arquivos para uma camada específica')
     .action(async (layer: string) => {
       if (layer !== 'repository') {
-        console.log('Camada não suportada. Use: repository');
+        console.log('❌ Camada não suportada. Use: repository');
+        console.log('💡 Camadas futuras: component, feature, layout');
         return;
       }
+
+      // Verificar se é um projeto Khaos
+      if (!await isKhaosProject()) {
+        console.log('⚠️  Este não parece ser um projeto Khaos.');
+        const { proceed } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'proceed',
+            message: 'Continuar mesmo assim?',
+            default: false,
+          },
+        ]);
+
+        if (!proceed) {
+          console.log('💡 Execute "tartarus init" para inicializar um projeto Khaos.');
+          return;
+        }
+      }
+
+      const config = await loadConfig();
 
       // Passo 1: Perguntar descrição
       const { description } = await inquirer.prompt([
@@ -24,13 +47,8 @@ export function setupCreateCommand(program: Command) {
         },
       ]);
 
-      // Passo 2: Sugerir nome (simulado, IA seria usada aqui)
-      let suggestedName = description
-        .toLowerCase()
-        .replace(/gerenciar|criar/g, '')
-        .trim()
-        .replace(/\s+/g, '-');
-      if (!suggestedName) suggestedName = 'strategy';
+      // Passo 2: Sugerir nome usando IA simulada
+      const suggestedName = suggestName(description);
 
       const { name } = await inquirer.prompt([
         {
@@ -38,8 +56,10 @@ export function setupCreateCommand(program: Command) {
           name: 'name',
           message: `Nome sugerido: ${suggestedName}. Novo nome (Enter para aceitar):`,
           default: suggestedName,
-          validate: (input: string) =>
-            /^[a-z0-9-]+$/.test(input) || 'Use apenas letras minúsculas, números e hífens',
+          validate: (input: string) => {
+            const result = sanitizeName(input);
+            return result.isValid || result.error || 'Nome inválido';
+          },
         },
       ]);
 
@@ -58,19 +78,23 @@ export function setupCreateCommand(program: Command) {
       ]);
 
       // Passo 4: Gerar arquivos
-      const files: string[] = [];
-      const templateDir = path.join(__dirname, '../templates');
-      const outputDir = process.cwd();
+      const spinner = createSpinner('Gerando arquivos...');
+      
+      try {
+        const files: string[] = [];
+        const templateDir = path.join(__dirname, '../templates');
+        const outputDir = process.cwd();
+        const nameCapitalized = toPascalCase(name);
 
-      // Repository
-      const repoTemplate = await ejs.renderFile(
-        path.join(templateDir, 'repository.ts.ejs'),
-        { name, nameCapitalized: name.split('-').map((c: string) => c.charAt(0).toUpperCase() + c.slice(1)).join('') }
-      );
-      const repoPath = path.join(outputDir, 'src/repositories', `${name}.repository.ts`);
-      await fs.ensureDir(path.dirname(repoPath));
-      await fs.writeFile(repoPath, repoTemplate);
-      files.push(repoPath);
+        // Repository
+        const repoTemplate = await ejs.renderFile(
+          path.join(templateDir, config.templates.repository),
+          { name, nameCapitalized }
+        );
+        const repoPath = path.join(outputDir, config.directories.repositories, `${name}${config.naming.suffixes.repository}`);
+        await fs.ensureDir(path.dirname(repoPath));
+        await fs.writeFile(repoPath, repoTemplate);
+        files.push(repoPath);
 
       // Gateway
       if (layers.includes('gateway (find-one)')) {
@@ -108,27 +132,37 @@ export function setupCreateCommand(program: Command) {
         files.push(entityPath);
       }
 
-      console.log('Arquivos gerados:', files);
+        spinner.stop('✅ Arquivos gerados com sucesso!');
+        console.log('📁 Arquivos criados:', files.map(f => path.relative(outputDir, f)));
 
-      // Passo 5: Sugerir commit
-      const { doCommit } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'doCommit',
-          message: `Fazer commit? Mensagem: 'feat: add ${name} repository and related files'`,
-          default: true,
-        },
-      ]);
+        // Passo 5: Sugerir commit
+        if (config.git.autoCommit) {
+          const { doCommit } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'doCommit',
+              message: `Fazer commit? Mensagem: '${config.git.commitTemplate.replace('{name}', name).replace('{layer}', 'repository')}'`,
+              default: true,
+            },
+          ]);
 
-      if (doCommit) {
-        const git = simpleGit();
-        try {
-          await git.add(files);
-          await git.commit(`feat: add ${name} repository and related files`);
-          console.log('Commit realizado com sucesso!');
-        } catch (error: any) {
-          console.log('Erro ao fazer commit:', error.message);
+          if (doCommit) {
+            const commitSpinner = createSpinner('Fazendo commit...');
+            const git = simpleGit();
+            try {
+              await git.add(files);
+              await git.commit(config.git.commitTemplate.replace('{name}', name).replace('{layer}', 'repository'));
+              commitSpinner.stop('✅ Commit realizado com sucesso!');
+            } catch (error: any) {
+              commitSpinner.stop('❌ Erro ao fazer commit');
+              console.log('Erro:', error.message);
+            }
+          }
         }
+      } catch (error: any) {
+        spinner.stop('❌ Erro ao gerar arquivos');
+        console.error('Erro:', error.message);
+        process.exit(1);
       }
     });
 } 
