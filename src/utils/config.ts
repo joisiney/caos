@@ -7,12 +7,18 @@ export interface TartarusConfig {
     gateway: string;
     model: string;
     entity: string;
+    component: string;
+    feature: string;
+    layout: string;
   };
   directories: {
     repositories: string;
     gateways: string;
     models: string;
     entities: string;
+    components: string;
+    features: string;
+    layouts: string;
   };
   naming: {
     caseStyle: 'kebab-case' | 'camelCase' | 'PascalCase';
@@ -21,6 +27,9 @@ export interface TartarusConfig {
       gateway: string;
       model: string;
       entity: string;
+      component: string;
+      feature: string;
+      layout: string;
     };
   };
   git: {
@@ -35,12 +44,18 @@ const DEFAULT_CONFIG: TartarusConfig = {
     gateway: 'gateway.ts.ejs',
     model: 'model.ts.ejs',
     entity: 'entity.ts.ejs',
+    component: 'component.tsx.ejs',
+    feature: 'feature.tsx.ejs',
+    layout: 'layout.tsx.ejs',
   },
   directories: {
     repositories: 'src/repositories',
     gateways: 'src/gateways',
     models: 'src/models',
     entities: 'src/entities',
+    components: 'src/components',
+    features: 'src/features',
+    layouts: 'src/layouts',
   },
   naming: {
     caseStyle: 'kebab-case',
@@ -49,6 +64,9 @@ const DEFAULT_CONFIG: TartarusConfig = {
       gateway: '.gateway.ts',
       model: '.model.ts',
       entity: '.entity.ts',
+      component: '.component.tsx',
+      feature: '.feature.tsx',
+      layout: '.layout.tsx',
     },
   },
   git: {

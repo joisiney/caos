@@ -4,12 +4,18 @@ export interface TartarusConfig {
         gateway: string;
         model: string;
         entity: string;
+        component: string;
+        feature: string;
+        layout: string;
     };
     directories: {
         repositories: string;
         gateways: string;
         models: string;
         entities: string;
+        components: string;
+        features: string;
+        layouts: string;
     };
     naming: {
         caseStyle: 'kebab-case' | 'camelCase' | 'PascalCase';
@@ -18,6 +24,9 @@ export interface TartarusConfig {
             gateway: string;
             model: string;
             entity: string;
+            component: string;
+            feature: string;
+            layout: string;
         };
     };
     git: {

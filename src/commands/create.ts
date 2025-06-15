@@ -12,9 +12,11 @@ export function setupCreateCommand(program: Command) {
     .command('create <layer>')
     .description('Cria arquivos para uma camada específica')
     .action(async (layer: string) => {
-      if (layer !== 'repository') {
-        console.log('❌ Camada não suportada. Use: repository');
-        console.log('💡 Camadas futuras: component, feature, layout');
+      const supportedLayers = ['repository', 'gateway', 'model', 'entity', 'component', 'feature', 'layout'];
+      
+      if (!supportedLayers.includes(layer)) {
+        console.log('❌ Camada não suportada.');
+        console.log(`💡 Camadas disponíveis: ${supportedLayers.join(', ')}`);
         return;
       }
 
@@ -63,74 +65,82 @@ export function setupCreateCommand(program: Command) {
         },
       ]);
 
-      // Passo 3: Sugerir camadas
-      const { layers } = await inquirer.prompt([
-        {
-          type: 'checkbox',
-          name: 'layers',
-          message: 'Selecione camadas relacionadas:',
-          choices: [
-            { name: 'gateway (find-one)', checked: true },
-            { name: 'model', checked: true },
-            { name: 'entity', checked: false },
-          ],
-        },
-      ]);
-
-      // Passo 4: Gerar arquivos
-      const spinner = createSpinner('Gerando arquivos...');
+      // Passo 3: Sugerir camadas relacionadas (apenas para repository)
+      let relatedLayers: string[] = [];
       
-      try {
-        const files: string[] = [];
-        const templateDir = path.join(__dirname, '../templates');
-        const outputDir = process.cwd();
-        const nameCapitalized = toPascalCase(name);
-
-        // Repository
-        const repoTemplate = await ejs.renderFile(
-          path.join(templateDir, config.templates.repository),
-          { name, nameCapitalized }
-        );
-        const repoPath = path.join(outputDir, config.directories.repositories, `${name}${config.naming.suffixes.repository}`);
-        await fs.ensureDir(path.dirname(repoPath));
-        await fs.writeFile(repoPath, repoTemplate);
-        files.push(repoPath);
-
-      // Gateway
-      if (layers.includes('gateway (find-one)')) {
-        const gatewayTemplate = await ejs.renderFile(
-          path.join(templateDir, 'gateway.ts.ejs'),
-          { name, nameCapitalized: name.split('-').map((c: string) => c.charAt(0).toUpperCase() + c.slice(1)).join('') }
-        );
-        const gatewayPath = path.join(outputDir, 'src/gateways', `find-one-${name}.gateway.ts`);
-        await fs.ensureDir(path.dirname(gatewayPath));
-        await fs.writeFile(gatewayPath, gatewayTemplate);
-        files.push(gatewayPath);
+      if (layer === 'repository') {
+        const { layers } = await inquirer.prompt([
+          {
+            type: 'checkbox',
+            name: 'layers',
+            message: 'Selecione camadas relacionadas:',
+            choices: [
+              { name: 'gateway (find-one)', checked: true },
+              { name: 'model', checked: true },
+              { name: 'entity', checked: false },
+            ],
+          },
+        ]);
+        relatedLayers = layers;
+      } else if (layer === 'feature') {
+        const { includeRepository } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'includeRepository',
+            message: 'Incluir repository relacionado?',
+            default: true,
+          },
+        ]);
+        if (includeRepository) {
+          relatedLayers = ['repository', 'gateway', 'model', 'entity'];
+        }
       }
 
-      // Model
-      if (layers.includes('model')) {
-        const modelTemplate = await ejs.renderFile(
-          path.join(templateDir, 'model.ts.ejs'),
-          { name, nameCapitalized: name.split('-').map((c: string) => c.charAt(0).toUpperCase() + c.slice(1)).join('') }
-        );
-        const modelPath = path.join(outputDir, 'src/models', `${name}.model.ts`);
-        await fs.ensureDir(path.dirname(modelPath));
-        await fs.writeFile(modelPath, modelTemplate);
-        files.push(modelPath);
-      }
+              // Passo 4: Gerar arquivos
+        const spinner = createSpinner('Gerando arquivos...');
+        
+        try {
+          const files: string[] = [];
+          const templateDir = path.join(__dirname, '../templates');
+          const outputDir = process.cwd();
+          const nameCapitalized = toPascalCase(name);
 
-      // Entity
-      if (layers.includes('entity')) {
-        const entityTemplate = await ejs.renderFile(
-          path.join(templateDir, 'entity.ts.ejs'),
-          { name, nameCapitalized: name.split('-').map((c: string) => c.charAt(0).toUpperCase() + c.slice(1)).join('') }
-        );
-        const entityPath = path.join(outputDir, 'src/entities', `${name}.entity.ts`);
-        await fs.ensureDir(path.dirname(entityPath));
-        await fs.writeFile(entityPath, entityTemplate);
-        files.push(entityPath);
-      }
+          // Função para gerar arquivo individual
+          const generateFile = async (layerType: string, namePrefix: string = '') => {
+            const templatePath = path.join(templateDir, (config.templates as any)[layerType]);
+            const layerDir = (config.directories as any)[layerType + 's'] || (config.directories as any)[layerType];
+            const suffix = (config.naming.suffixes as any)[layerType];
+            
+            if (!await fs.pathExists(templatePath)) {
+              console.log(`⚠️ Template não encontrado para ${layerType}: ${templatePath}`);
+              return;
+            }
+
+            const template = await ejs.renderFile(templatePath, { name, nameCapitalized });
+            const fileName = namePrefix ? `${namePrefix}-${name}${suffix}` : `${name}${suffix}`;
+            const filePath = path.join(outputDir, layerDir, fileName);
+            
+            await fs.ensureDir(path.dirname(filePath));
+            await fs.writeFile(filePath, template);
+            files.push(filePath);
+          };
+
+          // Gerar arquivo principal da camada
+          await generateFile(layer);
+
+          // Gerar arquivos relacionados
+          if (relatedLayers.includes('gateway (find-one)')) {
+            await generateFile('gateway', 'find-one');
+          }
+          if (relatedLayers.includes('model')) {
+            await generateFile('model');
+          }
+          if (relatedLayers.includes('entity')) {
+            await generateFile('entity');
+          }
+          if (relatedLayers.includes('repository')) {
+            await generateFile('repository');
+          }
 
         spinner.stop('✅ Arquivos gerados com sucesso!');
         console.log('📁 Arquivos criados:', files.map(f => path.relative(outputDir, f)));

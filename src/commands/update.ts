@@ -3,42 +3,51 @@ import inquirer from 'inquirer';
 import fs from 'fs-extra';
 import path from 'path';
 import { simpleGit } from 'simple-git';
+import { loadConfig } from '../utils/config';
 
 export function setupUpdateCommand(program: Command) {
   program
     .command('update <layer>')
     .description('Atualiza o nome de arquivos de uma camada')
     .action(async (layer: string) => {
-      if (layer !== 'repository') {
-        console.log('Camada não suportada. Use: repository');
+      const supportedLayers = ['repository', 'gateway', 'model', 'entity', 'component', 'feature', 'layout'];
+      
+      if (!supportedLayers.includes(layer)) {
+        console.log('❌ Camada não suportada.');
+        console.log(`💡 Camadas disponíveis: ${supportedLayers.join(', ')}`);
         return;
       }
 
-      // Passo 1: Listar repositórios existentes
-      const repoDir = path.join(process.cwd(), 'src/repositories');
-      let repos: string[] = [];
+      const config = await loadConfig();
+      
+      // Passo 1: Listar arquivos existentes da camada
+      const layerDir = (config.directories as any)[layer + 's'] || (config.directories as any)[layer];
+      const suffix = (config.naming.suffixes as any)[layer];
+      
+      let files: string[] = [];
       try {
-        repos = (await fs.readdir(repoDir)).filter(f => f.endsWith('.repository.ts'));
+        const fullPath = path.join(process.cwd(), layerDir);
+        files = (await fs.readdir(fullPath)).filter(f => f.endsWith(suffix));
       } catch {
-        console.log('Nenhum repositório encontrado.');
+        console.log(`❌ Nenhum arquivo de ${layer} encontrado em ${layerDir}.`);
         return;
       }
 
-      if (repos.length === 0) {
-        console.log('Nenhum repositório encontrado.');
+      if (files.length === 0) {
+        console.log(`❌ Nenhum arquivo de ${layer} encontrado.`);
         return;
       }
 
-      const { repo } = await inquirer.prompt([
+      const { selectedFile } = await inquirer.prompt([
         {
           type: 'list',
-          name: 'repo',
-          message: 'Selecione o repositório:',
-          choices: repos,
+          name: 'selectedFile',
+          message: `Selecione o ${layer}:`,
+          choices: files,
         },
       ]);
 
-      const oldName = repo.replace('.repository.ts', '');
+      const oldName = selectedFile.replace(suffix, '');
 
       // Passo 2: Perguntar novo nome
       const { newName } = await inquirer.prompt([
@@ -79,21 +88,22 @@ export function setupUpdateCommand(program: Command) {
       }
 
       // Passo 4: Renomear arquivos
-      const files: string[] = [];
-      const repoPath = path.join(repoDir, repo);
-      const newRepoPath = path.join(repoDir, `${newName}.repository.ts`);
-      await fs.rename(repoPath, newRepoPath);
-      files.push(newRepoPath);
+      const updatedFiles: string[] = [];
+      const oldFilePath = path.join(process.cwd(), layerDir, selectedFile);
+      const newFileName = `${newName}${suffix}`;
+      const newFilePath = path.join(process.cwd(), layerDir, newFileName);
+      await fs.rename(oldFilePath, newFilePath);
+      updatedFiles.push(newFilePath);
 
       for (const file of relatedFiles) {
         const oldPath = path.join(process.cwd(), file.path);
         const newPath = path.join(process.cwd(), file.newPath);
         await fs.rename(oldPath, newPath);
-        files.push(newPath);
+        updatedFiles.push(newPath);
       }
 
       // Passo 5: Atualizar imports (simplificado)
-      for (const file of files) {
+      for (const file of updatedFiles) {
         let content = await fs.readFile(file, 'utf-8');
         
         // Substituir nomes nos imports e referencias
@@ -106,14 +116,14 @@ export function setupUpdateCommand(program: Command) {
         await fs.writeFile(file, content);
       }
 
-      console.log('Arquivos atualizados:', files);
+      console.log('✅ Arquivos atualizados:', updatedFiles.map(f => path.relative(process.cwd(), f)));
 
       // Passo 6: Sugerir commit
       const { doCommit } = await inquirer.prompt([
         {
           type: 'confirm',
           name: 'doCommit',
-          message: `Fazer commit? Mensagem: 'refactor: rename ${oldName} to ${newName}'`,
+          message: `Fazer commit? Mensagem: 'refactor: rename ${layer} ${oldName} to ${newName}'`,
           default: true,
         },
       ]);
@@ -121,11 +131,11 @@ export function setupUpdateCommand(program: Command) {
       if (doCommit) {
         const git = simpleGit();
         try {
-          await git.add(files);
-          await git.commit(`refactor: rename ${oldName} to ${newName}`);
-          console.log('Commit realizado com sucesso!');
+          await git.add(updatedFiles);
+          await git.commit(`refactor: rename ${layer} ${oldName} to ${newName}`);
+          console.log('✅ Commit realizado com sucesso!');
         } catch (error: any) {
-          console.log('Erro ao fazer commit:', error.message);
+          console.log('❌ Erro ao fazer commit:', error.message);
         }
       }
     });

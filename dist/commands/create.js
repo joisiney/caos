@@ -16,9 +16,10 @@ function setupCreateCommand(program) {
         .command('create <layer>')
         .description('Cria arquivos para uma camada específica')
         .action(async (layer) => {
-        if (layer !== 'repository') {
-            console.log('❌ Camada não suportada. Use: repository');
-            console.log('💡 Camadas futuras: component, feature, layout');
+        const supportedLayers = ['repository', 'gateway', 'model', 'entity', 'component', 'feature', 'layout'];
+        if (!supportedLayers.includes(layer)) {
+            console.log('❌ Camada não suportada.');
+            console.log(`💡 Camadas disponíveis: ${supportedLayers.join(', ')}`);
             return;
         }
         // Verificar se é um projeto Khaos
@@ -60,19 +61,36 @@ function setupCreateCommand(program) {
                 },
             },
         ]);
-        // Passo 3: Sugerir camadas
-        const { layers } = await inquirer_1.default.prompt([
-            {
-                type: 'checkbox',
-                name: 'layers',
-                message: 'Selecione camadas relacionadas:',
-                choices: [
-                    { name: 'gateway (find-one)', checked: true },
-                    { name: 'model', checked: true },
-                    { name: 'entity', checked: false },
-                ],
-            },
-        ]);
+        // Passo 3: Sugerir camadas relacionadas (apenas para repository)
+        let relatedLayers = [];
+        if (layer === 'repository') {
+            const { layers } = await inquirer_1.default.prompt([
+                {
+                    type: 'checkbox',
+                    name: 'layers',
+                    message: 'Selecione camadas relacionadas:',
+                    choices: [
+                        { name: 'gateway (find-one)', checked: true },
+                        { name: 'model', checked: true },
+                        { name: 'entity', checked: false },
+                    ],
+                },
+            ]);
+            relatedLayers = layers;
+        }
+        else if (layer === 'feature') {
+            const { includeRepository } = await inquirer_1.default.prompt([
+                {
+                    type: 'confirm',
+                    name: 'includeRepository',
+                    message: 'Incluir repository relacionado?',
+                    default: true,
+                },
+            ]);
+            if (includeRepository) {
+                relatedLayers = ['repository', 'gateway', 'model', 'entity'];
+            }
+        }
         // Passo 4: Gerar arquivos
         const spinner = (0, helpers_1.createSpinner)('Gerando arquivos...');
         try {
@@ -80,35 +98,36 @@ function setupCreateCommand(program) {
             const templateDir = path_1.default.join(__dirname, '../templates');
             const outputDir = process.cwd();
             const nameCapitalized = (0, helpers_1.toPascalCase)(name);
-            // Repository
-            const repoTemplate = await ejs_1.default.renderFile(path_1.default.join(templateDir, config.templates.repository), { name, nameCapitalized });
-            const repoPath = path_1.default.join(outputDir, config.directories.repositories, `${name}${config.naming.suffixes.repository}`);
-            await fs_extra_1.default.ensureDir(path_1.default.dirname(repoPath));
-            await fs_extra_1.default.writeFile(repoPath, repoTemplate);
-            files.push(repoPath);
-            // Gateway
-            if (layers.includes('gateway (find-one)')) {
-                const gatewayTemplate = await ejs_1.default.renderFile(path_1.default.join(templateDir, 'gateway.ts.ejs'), { name, nameCapitalized: name.split('-').map((c) => c.charAt(0).toUpperCase() + c.slice(1)).join('') });
-                const gatewayPath = path_1.default.join(outputDir, 'src/gateways', `find-one-${name}.gateway.ts`);
-                await fs_extra_1.default.ensureDir(path_1.default.dirname(gatewayPath));
-                await fs_extra_1.default.writeFile(gatewayPath, gatewayTemplate);
-                files.push(gatewayPath);
+            // Função para gerar arquivo individual
+            const generateFile = async (layerType, namePrefix = '') => {
+                const templatePath = path_1.default.join(templateDir, config.templates[layerType]);
+                const layerDir = config.directories[layerType + 's'] || config.directories[layerType];
+                const suffix = config.naming.suffixes[layerType];
+                if (!await fs_extra_1.default.pathExists(templatePath)) {
+                    console.log(`⚠️ Template não encontrado para ${layerType}: ${templatePath}`);
+                    return;
+                }
+                const template = await ejs_1.default.renderFile(templatePath, { name, nameCapitalized });
+                const fileName = namePrefix ? `${namePrefix}-${name}${suffix}` : `${name}${suffix}`;
+                const filePath = path_1.default.join(outputDir, layerDir, fileName);
+                await fs_extra_1.default.ensureDir(path_1.default.dirname(filePath));
+                await fs_extra_1.default.writeFile(filePath, template);
+                files.push(filePath);
+            };
+            // Gerar arquivo principal da camada
+            await generateFile(layer);
+            // Gerar arquivos relacionados
+            if (relatedLayers.includes('gateway (find-one)')) {
+                await generateFile('gateway', 'find-one');
             }
-            // Model
-            if (layers.includes('model')) {
-                const modelTemplate = await ejs_1.default.renderFile(path_1.default.join(templateDir, 'model.ts.ejs'), { name, nameCapitalized: name.split('-').map((c) => c.charAt(0).toUpperCase() + c.slice(1)).join('') });
-                const modelPath = path_1.default.join(outputDir, 'src/models', `${name}.model.ts`);
-                await fs_extra_1.default.ensureDir(path_1.default.dirname(modelPath));
-                await fs_extra_1.default.writeFile(modelPath, modelTemplate);
-                files.push(modelPath);
+            if (relatedLayers.includes('model')) {
+                await generateFile('model');
             }
-            // Entity
-            if (layers.includes('entity')) {
-                const entityTemplate = await ejs_1.default.renderFile(path_1.default.join(templateDir, 'entity.ts.ejs'), { name, nameCapitalized: name.split('-').map((c) => c.charAt(0).toUpperCase() + c.slice(1)).join('') });
-                const entityPath = path_1.default.join(outputDir, 'src/entities', `${name}.entity.ts`);
-                await fs_extra_1.default.ensureDir(path_1.default.dirname(entityPath));
-                await fs_extra_1.default.writeFile(entityPath, entityTemplate);
-                files.push(entityPath);
+            if (relatedLayers.includes('entity')) {
+                await generateFile('entity');
+            }
+            if (relatedLayers.includes('repository')) {
+                await generateFile('repository');
             }
             spinner.stop('✅ Arquivos gerados com sucesso!');
             console.log('📁 Arquivos criados:', files.map(f => path_1.default.relative(outputDir, f)));
