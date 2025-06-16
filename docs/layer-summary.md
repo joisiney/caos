@@ -2,7 +2,7 @@
 
 Cada layer possui uma função clara dentro da arquitetura e deve seguir convenções rigorosas de sufixo e estrutura.
 
-### 🔹 `atoms/`
+### 🔹 `src/atoms/*`
 
 * **Descrição**: Elementos básicos e reutilizáveis da interface.
 * **Sufixo**: `.atom.tsx`
@@ -14,7 +14,7 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 
 ---
 
-### 🔹 `molecules/`
+### 🔹 `src/molecules/*`
 
 * **Descrição**: Composições de atoms com possível lógica local.
 * **Sufixo**: `.molecule.tsx`
@@ -29,7 +29,7 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 
 ---
 
-### 🔹 `organisms/`
+### 🔹 `src/organisms/*`
 
 * **Descrição**: Composições de moléculas e/ou átomos com estrutura semântica.
 * **Sufixo**: `.organism.tsx`
@@ -41,7 +41,7 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 
 ---
 
-### 🔹 `templates/`
+### 🔹 `src/templates/*`
 
 * **Descrição**: Layouts visuais que orquestram todas as rotas que por sua vez orquestra a exibição de dados e interação das features.
 * **Sufixo**: `.template.tsx`
@@ -54,7 +54,7 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 
 ---
 
-### 🔹 `features/`
+### 🔹 `src/features/*`
 
 * **Descrição**: Representa uma funcionalidade completa da aplicação.
 * **Sufixo**: `.feature.tsx`
@@ -66,7 +66,7 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 
 ---
 
-### 🔹 `layouts/`
+### 🔹 `src/layouts/*`
 
 * **Descrição**: Define a navegação e estrutura dos módulos da aplicação.
 * **Sufixo**: `.layout.tsx`
@@ -75,7 +75,7 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 
 ---
 
-### 🔹 `particles/`
+### 🔹 `src/particles/*`
 
 * **Descrição**: Serviços, constantes e contextos compartilháveis entre features.
 * **Sufixo**: `.particle.tsx`
@@ -86,7 +86,7 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 
 ---
 
-### 🔹 `models/`
+### 🔹 `src/models/*`
 
 * **Descrição**: Classes que encapsulam regras de negócio e transformações, deve ser de uso exclusivo para tratar dados recebidos de API na layer de `repository`.
 * **Sufixo**: `.model.ts`
@@ -94,7 +94,7 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 
 ---
 
-### 🔹 `entities/`
+### 🔹 `src/entities/*`
 
 * **Descrição**: Representações puras dos dados (tipos) recebidos da API.
 * **Sufixo**: `.entity.ts`
@@ -103,7 +103,7 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 
 ---
 
-### 🔹 `utils/`
+### 🔹 `src/utils/*`
 
 * **Descrição**: Funções utilitárias puras.
 * **Sufixo**: `.util.ts`
@@ -111,7 +111,7 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 
 ---
 
-### 🔹 `gateways/`
+### 🔹 `src/gateways/*`
 
 * **Descrição**: layer de acesso a APIs externas.
 * **Sufixo**: `.gateway.ts`
@@ -120,7 +120,7 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 
 ---
 
-### 🔹 `repositories/`
+### 🔹 `src/repositories/*`
 
 * **Descrição**: Orquestradores que combinam múltiplos gateways (hooks).
 * **Sufixo**: `.repository.ts`

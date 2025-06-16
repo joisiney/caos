@@ -1,284 +1,162 @@
-# 📘 Khaos CLI (Tartarus)
+# 🧬 Khaos CLI - WIP
 
-O nome deste projeto vem da divindade primordial da mitologia grega: **Khaos**, o vazio original, o berço de toda criação. Assim como no mito, aqui também nasce algo do nada — uma arquitetura front-end clara, modular e escalável.
+O **Khaos CLI** automatiza a criação de átomos seguindo a arquitetura Khaos, baseado exatamente no documento [`atom.md`](docs/layers/atom.md).
 
-Para invocar **Khaos**, é preciso atravessar as camadas do submundo. É aí que entra o nosso executor abissal: o **Tartarus CLI**.
+## 🚀 Instalação e Uso
 
-> 💀 No mito, Tartarus é o abismo mais profundo, abaixo até do Hades.  
-> No nosso universo, é o CLI que emerge das profundezas do terminal para invocar o poder criador de Khaos e transformar o vazio do `src/` em ordem arquitetural.
-
-## 🚀 Status da Implementação
-
-### ✅ Funcionalidades Implementadas
-
-- **🔧 `tartarus create <layer>`** - Cria arquivos para qualquer camada da arquitetura
-- **📝 `tartarus update <layer>`** - Renomeia arquivos e atualiza dependências
-- **🏗 `tartarus init`** - Inicializa projeto com estrutura completa
-- **🔍 `tartarus validate`** - Valida estrutura e convenções
-- **🤖 Sugestões de nomes** - IA simulada baseada na descrição
-- **📦 Templates EJS** - Para geração consistente de código
-- **🔄 Commits automáticos** - Com mensagens padronizadas
-- **⚙️ Configuração completa** - .tartarusrc.json customizável
-
-### 🎮 Comandos Disponíveis
-
-#### 🏗 Inicializar Projeto
-```bash
-tartarus init
-```
-Cria estrutura completa do projeto Khaos com configuração.
-
-#### 🔧 Criar Camadas
-```bash
-# Todas as camadas suportadas
-tartarus create repository    # Camada de dados
-tartarus create gateway       # Comunicação com APIs  
-tartarus create model         # Modelos de domínio
-tartarus create entity        # Tipagens de dados
-tartarus create component     # Componentes reutilizáveis
-tartarus create feature       # Features da aplicação
-tartarus create layout        # Layouts da aplicação
-```
-
-**Fluxo universal:**
-1. 📝 Descreva o que você quer construir
-2. ✏️ Aceite ou modifique o nome sugerido
-3. 🎯 Selecione camadas relacionadas (quando aplicável)
-4. ✅ Confirme o commit automático
-
-#### 📝 Atualizar Camadas
-```bash
-tartarus update <layer>
-```
-Renomeia qualquer camada e atualiza dependências relacionadas.
-
-#### 🔍 Validar Projeto
-```bash
-tartarus validate
-```
-Analisa estrutura e convenções do projeto.
-
-## 🛠 Instalação e Uso
-
-### Pré-requisitos
+### **Pré-requisitos**
 - Node.js 18+
-- Git configurado
-- Projeto com estrutura `src/` (repositories, gateways, models, entities)
+- Yarn (recomendado)
 
-### Instalação Global
+### **Instalação Global**
 ```bash
-# No diretório do khaos-cli
-npm install
-npm run build
-npm link
+yarn install
+yarn build
+yarn global add file:$(pwd)
 
 # Agora você pode usar em qualquer projeto
-tartarus --help
+khaos --help
 ```
 
-### Exemplo de Uso Completo
-
+### **Desinstalação Global**
 ```bash
-# Em um projeto React/React Native com estrutura src/
-mkdir -p src/{repositories,gateways,models,entities}
-git init
-
-# Criar um repositório de usuários
-tartarus create repository
-# > Descreva: "gerenciar usuários da aplicação"
-# > Nome: user (sugerido)
-# > Camadas: [x] gateway [x] model [x] entity
-# > Commit: [y] feat: add user repository and related files
-
-# Renomear depois
-tartarus update repository  
-# > Selecionar: user.repository.ts
-# > Novo nome: account
-# > Arquivos relacionados: [x] gateway [x] model [x] entity
-# > Commit: [y] refactor: rename user to account
+yarn global remove khaos-cli
 ```
 
-## 📁 Templates de Todas as Camadas
+## 🎮 Comandos
 
-### 🗂 Repository Template (.ts)
-```typescript
-import { findOne{Name}Gateway } from '@/gateways/find-one-{name}.gateway';
-import { {Name}Model } from '@/models/{name}.model';
-
-export const use{Name}Repository = () => {
-  const findOneById = async (id: string) => {
-    const data = await findOne{Name}Gateway({ id });
-    return new {Name}Model(data);
-  };
-
-  return { findOneById };
-};
-```
-
-### 📡 Gateway Template (.ts)
-```typescript
-import { httpClient } from './http';
-import { T{Name}Entity } from '@/entities/{name}.entity';
-
-export namespace N{Name}Gateway {
-  export type FindOneInput = { id: string };
-}
-
-export const findOne{Name}Gateway = async ({ id }: N{Name}Gateway.FindOneInput): Promise<T{Name}Entity> => {
-  const { data } = await httpClient.get(`/{name}/${id}`);
-  return data;
-};
-```
-
-### 🧬 Model Template (.ts)
-```typescript
-import { T{Name}Entity } from '@/entities/{name}.entity';
-
-export class {Name}Model {
-  constructor(private data: T{Name}Entity) {}
-}
-```
-
-### 📊 Entity Template (.ts)
-```typescript
-export type T{Name}Entity = {
-  id: string;
-  // Adicione outros campos conforme necessário
-};
-```
-
-### 🧩 Component Template (.tsx)
-```tsx
-import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
-
-export interface {Name}ComponentProps {
-  children?: React.ReactNode;
-  testID?: string;
-}
-
-export const {Name}Component: React.FC<{Name}ComponentProps> = ({
-  children,
-  testID = '{name}-component',
-}) => {
-  return (
-    <View style={styles.container} testID={testID}>
-      <Text style={styles.title}>{Name} Component</Text>
-      {children}
-    </View>
-  );
-};
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  title: { fontSize: 18, fontWeight: 'bold', marginBottom: 16 },
-});
-
-export default {Name}Component;
-```
-
-### 🚀 Feature Template (.tsx)
-```tsx
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { use{Name}Repository } from '@/repositories/{name}.repository';
-
-export const {Name}Feature: React.FC = () => {
-  const {name}Repository = use{Name}Repository();
-
-  const handleAction = async () => {
-    // Implementar lógica da feature aqui
-  };
-
-  return (
-    <View style={styles.container}>
-      {/* Implementar UI da feature aqui */}
-    </View>
-  );
-};
-
-export default {Name}Feature;
-```
-
-### 🎨 Layout Template (.tsx)
-```tsx
-import React from 'react';
-import { View, StyleSheet, SafeAreaView } from 'react-native';
-
-export interface {Name}LayoutProps {
-  children: React.ReactNode;
-  testID?: string;
-}
-
-export const {Name}Layout: React.FC<{Name}LayoutProps> = ({
-  children,
-  testID = '{name}-layout',
-}) => {
-  return (
-    <SafeAreaView style={styles.safeArea} testID={testID}>
-      <View style={styles.container}>
-        {children}
-      </View>
-    </SafeAreaView>
-  );
-};
-
-export default {Name}Layout;
-```
-
-## 🔮 Próximos Passos (Roadmap)
-
-### 📋 Melhorias Planejadas
-
-- **🤖 Integração com IA** - Substituir sugestões regex por IA (Grok/OpenAI)
-- **🏗 Mais Camadas** - Suporte para `layout`, `feature`, `component`
-- **🔍 Análise de Código** - Parser AST para atualizações mais inteligentes
-- **📏 Validação Avançada** - ESLint rules customizadas
-- **📦 NPM Package** - Publicação para instalação via `npm i -g`
-
-### 🎯 Funcionalidades Futuras
-
+### **Menu Interativo (Recomendado)**
 ```bash
-# Comandos Avançados
-tartarus migrate <from> <to>         # Migrar entre estruturas
-tartarus scaffold <app-name>         # Scaffold app completo
-tartarus generate docs              # Gerar documentação automática
-tartarus sync                       # Sincronizar dependências
-tartarus doctor                     # Diagnóstico completo
-tartarus templates list            # Listar templates disponíveis
-tartarus templates create          # Criar templates customizados
+khaos create
 ```
 
-## 🏛 Arquitetura
+O CLI apresentará um menu com opções:
+- 🧬 **Átomo** (Elemento básico e reutilizável)
+- 🧪 **Molécula** (Combinação de átomos) - *Em desenvolvimento*
+- ❌ **Cancelar**
 
-Essa arquitetura foi inspirada em padrões reconhecidos como a **layered architecture**, aplicando princípios como **SOLID**, **TDD**, **separação de responsabilidades**, e **baixo acoplamento com alta coesão**.
+### **Comando Direto para Átomos**
+```bash
+khaos atom
+```
 
-### 📂 Estrutura do Projeto
+**Fluxo interativo (5 passos):**
+1. **📝 Descrever** → "um botão reutilizável"
+2. **✏️ Nome sugerido** → IA sugere `button` (dash-case)
+3. **🎯 Selecionar arquivos opcionais** → `constant.ts`, `spec.ts` (type.ts é sempre criado)
+4. **📁 Visualizar árvore** → Preview da estrutura
+5. **✅ Confirmar e commit** → `feat: add button atom`
+
+## 📁 Estrutura Gerada
+
 ```
-src/
-├── commands/           # Comandos do CLI
-│   ├── create.ts      # tartarus create
-│   └── update.ts      # tartarus update  
-├── templates/         # Templates EJS
-│   ├── repository.ts.ejs
-│   ├── gateway.ts.ejs
-│   ├── model.ts.ejs
-│   └── entity.ts.ejs
-├── utils/            # Utilitários (futuro)
-└── index.ts          # Entry point
+src/atoms/{name}/
+├── index.ts                 (sempre)
+├── {name}.atom.tsx          (sempre)
+├── {name}.type.ts           (sempre - OBRIGATÓRIO)
+├── {name}.constant.ts       (opcional)
+└── {name}.spec.ts          (opcional)
 ```
+
+## 🎯 Exemplos de Uso
+
+### **Exemplo 1: Botão Simples**
+```bash
+khaos create
+# Selecionar: Átomo
+# Descrição: "um botão reutilizável"
+# Nome: button
+# Arquivos opcionais: nenhum (apenas .type.ts obrigatório)
+```
+
+**Resultado:**
+```
+src/atoms/button/
+├── index.ts
+├── button.atom.tsx
+└── button.type.ts
+```
+
+### **Exemplo 2: Ícone Completo**
+```bash
+khaos create
+# Selecionar: Átomo
+# Descrição: "ícone com variações"
+# Nome: icon
+# Arquivos opcionais: [x] constant.ts [x] spec.ts
+```
+
+**Resultado:**
+```
+src/atoms/icon/
+├── index.ts
+├── icon.atom.tsx
+├── icon.type.ts
+├── icon.constant.ts
+└── icon.spec.ts
+```
+
+## 🧪 Testando o CLI
+
+### **Pasta Example**
+```bash
+cd example
+khaos create
+# Teste aqui sem afetar outros projetos
+```
+
+### **Scripts de Teste**
+```bash
+yarn test:example    # Testar na pasta example
+yarn clean:example   # Limpar pasta example
+```
+
+## 📄 Templates Baseados no atom.md
+
+Todos os templates seguem **exatamente** os exemplos do [`atom.md`](docs/layers/atom.md):
+
+- ✅ **index.ts** → Exportações centralizadas
+- ✅ **{name}.type.ts** → Namespace N{Name}Atom com Props (OBRIGATÓRIO)
+- ✅ **{name}.atom.tsx** → Componente React com testID
+- ✅ **{name}.constant.ts** → Constantes tipadas (opcional)
+- ✅ **{name}.spec.ts** → Testes unitários (opcional)
+
+## 🔧 Desenvolvimento
+
+### **Build Local**
+```bash
+yarn build    # Compila TypeScript + copia templates
+yarn dev      # Desenvolvimento com ts-node
+```
+
+### **Estrutura do Projeto**
+```
+khaos-cli/
+├── src/
+│   ├── index.ts                 # Entry point + menu interativo
+│   ├── commands/
+│   │   └── create-atom.ts       # Comando principal
+│   └── templates/               # Templates EJS
+│       ├── atom-index.ejs
+│       ├── atom-type.ejs
+│       ├── atom-atom.ejs
+│       ├── atom-constant.ejs
+│       └── atom-spec.ejs
+├── example/                     # Pasta para testes
+└── docs/layers/atom.md         # Especificação oficial
+```
+
+## ✅ Validação
+
+Todos os arquivos gerados seguem:
+- ✅ **Nomenclatura:** dash-case obrigatório
+- ✅ **Estrutura:** Pastas `src/atoms/{name}/`
+- ✅ **Templates:** Baseados exatamente no atom.md
+- ✅ **Imports:** Relativos e corretos
+- ✅ **Tipos:** TWithTestID importado do global
+- ✅ **Arquivo .type.ts:** Sempre criado (obrigatório)
 
 ---
 
-## 📋 Menu de Navegação
-
-| 📖 Documentação          | 🔗 Link                                    |
-| ------------------------ | ------------------------------------------ |
-| 📚 **Arquitetura Khaos** | [README.md](./README.md) ← Você está aqui |
-| 🌀 **Tartarus CLI**      | [CLI-README.md](./CLI-README.md)          |
-| ✅ **Boas Práticas**     | [docs/boas-praticas.md](./docs/boas-praticas.md) |
-
----
-
-🎭 **"Do caos nasce a ordem. Do terminal nasce a estrutura."** - Tartarus CLI
+**📋 Baseado na especificação:** [`docs/layers/atom.md`](docs/layers/atom.md)
 

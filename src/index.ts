@@ -1,31 +1,75 @@
 #!/usr/bin/env node
 
-import { program } from 'commander';
-import { setupCreateCommand } from './commands/create';
-import { setupUpdateCommand } from './commands/update';
-import { setupInitCommand } from './commands/init';
-import { setupValidateCommand } from './commands/validate';
+import { Command } from 'commander';
+import inquirer from 'inquirer';
+import { createAtom } from './commands/create-atom';
+
+const program = new Command();
 
 program
-  .version('1.0.0')
-  .description('Tartarus CLI - Gerador de código para arquitetura Khaos')
-  .option('-v, --verbose', 'Saída detalhada');
+  .name('khaos')
+  .description('🧬 Khaos CLI - Gerador de componentes baseado em Atomic Design')
+  .version('1.0.0');
 
-setupCreateCommand(program);
-setupUpdateCommand(program);
-setupInitCommand(program);
-setupValidateCommand(program);
+// Comando principal com menu interativo
+program
+  .command('create')
+  .description('Criar um novo componente')
+  .action(async () => {
+    await showMainMenu();
+  });
 
-// Melhor tratamento de erros
-program.on('command:*', () => {
-  console.error('❌ Comando inválido: %s\n', program.args.join(' '));
-  console.log('💡 Execute "tartarus --help" para ver comandos disponíveis.');
-  process.exit(1);
-});
+// Comando direto para átomos (mantém compatibilidade)
+program
+  .command('atom')
+  .description('Criar um novo átomo diretamente')
+  .action(async () => {
+    await createAtom();
+  });
 
-program.parse(process.argv);
+async function showMainMenu() {
+  console.log('🧬 Bem-vindo ao Khaos CLI!\n');
+  
+  const { choice } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'choice',
+      message: '🎯 O que você deseja criar?',
+      choices: [
+        {
+          name: '🧬 Átomo (Elemento básico e reutilizável)',
+          value: 'atom',
+          short: 'Átomo'
+        },
+        {
+          name: '🧪 Molécula (Combinação de átomos)',
+          value: 'molecule',
+          short: 'Molécula'
+        },
+        {
+          name: '❌ Cancelar',
+          value: 'cancel',
+          short: 'Cancelar'
+        }
+      ]
+    }
+  ]);
 
-// Se nenhum comando foi fornecido, mostrar ajuda
-if (!process.argv.slice(2).length) {
-  program.outputHelp();
-} 
+  switch (choice) {
+    case 'atom':
+      await createAtom();
+      break;
+    case 'molecule':
+      console.log('🧪 Criação de moléculas ainda não implementada!');
+      console.log('💡 Em breve: componentes que combinam múltiplos átomos');
+      console.log('📋 Por enquanto, use: khaos atom');
+      break;
+    case 'cancel':
+      console.log('👋 Operação cancelada. Até logo!');
+      break;
+    default:
+      console.log('❌ Opção inválida');
+  }
+}
+
+program.parse();
