@@ -43,7 +43,7 @@ async function createAtom() {
                 message: '🎯 Selecionar arquivos opcionais (type.ts é sempre criado):',
                 choices: [
                     { name: `${name}.constant.ts`, value: 'constant', checked: false },
-                    { name: `${name}.spec.ts`, value: 'spec', checked: false },
+                    { name: `${name}.spec.tsx`, value: 'spec', checked: false },
                 ],
             },
         ]);
@@ -135,7 +135,7 @@ function displayAtomTree(name, relatedFiles) {
     if (hasConstant && hasSpec) {
         console.log(`│   ├── ${name}.type.ts`);
         console.log(`│   ├── ${name}.constant.ts`);
-        console.log(`│   └── ${name}.spec.ts`);
+        console.log(`│   └── ${name}.spec.tsx`);
     }
     else if (hasConstant) {
         console.log(`│   ├── ${name}.type.ts`);
@@ -143,7 +143,7 @@ function displayAtomTree(name, relatedFiles) {
     }
     else if (hasSpec) {
         console.log(`│   ├── ${name}.type.ts`);
-        console.log(`│   └── ${name}.spec.ts`);
+        console.log(`│   └── ${name}.spec.tsx`);
     }
     else {
         console.log(`│   └── ${name}.type.ts`);
@@ -156,6 +156,8 @@ function displayAtomTree(name, relatedFiles) {
 async function generateAtomFiles(name, relatedFiles) {
     const atomDir = path_1.default.join(process.cwd(), 'src/atoms', name);
     const templateDir = path_1.default.join(__dirname, '../templates');
+    console.log('atomDir', atomDir);
+    console.log('templateDir', templateDir);
     // Variáveis para templates
     const nameCapitalized = toPascalCase(name);
     const NAME_CONSTANT = name.toUpperCase().replace(/-/g, '_');
@@ -178,7 +180,7 @@ async function generateAtomFiles(name, relatedFiles) {
         await generateFromTemplate(templateDir, atomDir, 'atom-constant.ejs', `${name}.constant.ts`, templateVars);
     }
     if (relatedFiles.includes('spec')) {
-        await generateFromTemplate(templateDir, atomDir, 'atom-spec.ejs', `${name}.spec.ts`, templateVars);
+        await generateFromTemplate(templateDir, atomDir, 'atom-spec.ejs', `${name}.spec.tsx`, templateVars);
     }
 }
 /**

@@ -42,7 +42,7 @@ export async function createAtom() {
         message: '🎯 Selecionar arquivos opcionais (type.ts é sempre criado):',
         choices: [
           { name: `${name}.constant.ts`, value: 'constant', checked: false },
-          { name: `${name}.spec.ts`, value: 'spec', checked: false },
+          { name: `${name}.spec.tsx`, value: 'spec', checked: false },
         ],
       },
     ]);
@@ -151,13 +151,13 @@ function displayAtomTree(name: string, relatedFiles: string[]) {
   if (hasConstant && hasSpec) {
     console.log(`│   ├── ${name}.type.ts`);
     console.log(`│   ├── ${name}.constant.ts`);
-    console.log(`│   └── ${name}.spec.ts`);
+    console.log(`│   └── ${name}.spec.tsx`);
   } else if (hasConstant) {
     console.log(`│   ├── ${name}.type.ts`);
     console.log(`│   └── ${name}.constant.ts`);
   } else if (hasSpec) {
     console.log(`│   ├── ${name}.type.ts`);
-    console.log(`│   └── ${name}.spec.ts`);
+    console.log(`│   └── ${name}.spec.tsx`);
   } else {
     console.log(`│   └── ${name}.type.ts`);
   }
@@ -200,7 +200,7 @@ async function generateAtomFiles(name: string, relatedFiles: string[]) {
   }
   
   if (relatedFiles.includes('spec')) {
-    await generateFromTemplate(templateDir, atomDir, 'atom-spec.ejs', `${name}.spec.ts`, templateVars);
+    await generateFromTemplate(templateDir, atomDir, 'atom-spec.ejs', `${name}.spec.tsx`, templateVars);
   }
 }
 

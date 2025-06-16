@@ -3,6 +3,7 @@
 import { Command } from 'commander';
 import inquirer from 'inquirer';
 import { createAtom } from './commands/create-atom';
+import { deleteAtom } from './commands/delete-atom';
 
 const program = new Command();
 
@@ -27,6 +28,14 @@ program
     await createAtom();
   });
 
+// Comando para deletar átomos
+program
+  .command('delete')
+  .description('Remover um átomo existente')
+  .action(async () => {
+    await deleteAtom();
+  });
+
 async function showMainMenu() {
   console.log('🧬 Bem-vindo ao Khaos CLI!\n');
   
@@ -34,12 +43,17 @@ async function showMainMenu() {
     {
       type: 'list',
       name: 'choice',
-      message: '🎯 O que você deseja criar?',
+      message: '🎯 O que você deseja fazer?',
       choices: [
         {
-          name: '🧬 Átomo (Elemento básico e reutilizável)',
+          name: '🧬 Criar Átomo (Elemento básico e reutilizável)',
           value: 'atom',
-          short: 'Átomo'
+          short: 'Criar Átomo'
+        },
+        {
+          name: '🗑️  Remover Átomo (Deletar átomo existente)',
+          value: 'delete',
+          short: 'Remover Átomo'
         },
         {
           name: '🧪 Molécula (Combinação de átomos)',
@@ -58,6 +72,9 @@ async function showMainMenu() {
   switch (choice) {
     case 'atom':
       await createAtom();
+      break;
+    case 'delete':
+      await deleteAtom();
       break;
     case 'molecule':
       console.log('🧪 Criação de moléculas ainda não implementada!');
