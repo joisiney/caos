@@ -235,3 +235,209 @@ export interface CacheEntry {
   /** Cache type */
   type: CacheType;
 }
+
+/**
+ * Generator-specific types
+ */
+
+export interface TemplateContext {
+  /** Component name in different cases */
+  name: string;
+  kebabName: string;
+  pascalName: string;
+  camelName: string;
+  /** Component namespace */
+  namespace: string;
+  /** Component description */
+  description: string;
+  /** Layer type */
+  layer: string;
+  /** Props definitions */
+  props: PropertyDefinition[];
+  /** Methods definitions */
+  methods: MethodDefinition[];
+  /** Features enabled */
+  features: string[];
+  /** Dependencies */
+  dependencies: string[];
+  /** Imports needed */
+  imports: ImportDefinition[];
+  /** Additional context data */
+  metadata: Record<string, any>;
+}
+
+export interface ImportDefinition {
+  /** What to import */
+  what: string;
+  /** From where to import */
+  from: string;
+  /** Import type (default, named, namespace) */
+  type: 'default' | 'named' | 'namespace';
+  /** Is it a type import */
+  isType?: boolean;
+}
+
+export interface TemplateFile {
+  /** Template name/identifier */
+  name: string;
+  /** Template content */
+  content: string;
+  /** File path relative to component directory */
+  relativePath: string;
+  /** Whether this file is required */
+  required: boolean;
+  /** Conditions for including this file */
+  conditions?: string[];
+}
+
+export interface LayerTemplate {
+  /** Layer type */
+  layer: string;
+  /** Template name */
+  name: string;
+  /** Template description */
+  description: string;
+  /** Template files */
+  files: TemplateFile[];
+  /** Required features for this template */
+  requiredFeatures?: string[];
+  /** Optional features this template supports */
+  supportedFeatures?: string[];
+}
+
+export interface FileGenerationContext {
+  /** Target directory */
+  targetDirectory: string;
+  /** Component name */
+  componentName: string;
+  /** Layer type */
+  layer: string;
+  /** Files to generate */
+  filesToGenerate: GeneratedFile[];
+  /** Template context */
+  templateContext: TemplateContext;
+}
+
+export interface GeneratedFile {
+  /** File name */
+  name: string;
+  /** File content */
+  content: string;
+  /** File path relative to component directory */
+  relativePath: string;
+  /** Whether this file was required */
+  required: boolean;
+  /** Generation metadata */
+  metadata: {
+    template: string;
+    generatedAt: Date;
+    aiEnhanced: boolean;
+  };
+}
+
+export interface TemplateSelection {
+  /** Selected template */
+  template: LayerTemplate;
+  /** Confidence in the selection */
+  confidence: number;
+  /** Reasoning for the selection */
+  reasoning: string;
+  /** Alternative templates considered */
+  alternatives: LayerTemplate[];
+}
+
+export interface VariableExtractionResult {
+  /** Extracted template context */
+  context: TemplateContext;
+  /** Files that should be generated */
+  filesToGenerate: string[];
+  /** Validation results */
+  validation: {
+    isValid: boolean;
+    issues: ValidationIssue[];
+  };
+}
+
+export interface CodeEnhancement {
+  /** Original code */
+  original: string;
+  /** Enhanced code */
+  enhanced: string;
+  /** Enhancement type */
+  type: 'ai-improvement' | 'validation-fix' | 'convention-fix';
+  /** Changes made */
+  changes: string[];
+  /** Confidence in enhancement */
+  confidence: number;
+}
+
+export interface GenerationOptions {
+  /** Whether to use AI enhancement */
+  useAIEnhancement: boolean;
+  /** Whether to validate generated code */
+  validateCode: boolean;
+  /** Whether to auto-fix validation errors */
+  autoFix: boolean;
+  /** Custom template to use */
+  customTemplate?: string;
+  /** Additional features to enable */
+  features?: string[];
+  /** Target directory override */
+  targetDirectory?: string;
+}
+
+export interface LayerStructure {
+  /** Layer type */
+  layer: string;
+  /** Required files for this layer */
+  requiredFiles: string[];
+  /** Optional files for this layer */
+  optionalFiles: string[];
+  /** Prefix requirements */
+  prefixRequired: boolean;
+  /** Default prefix for the layer */
+  defaultPrefix?: string;
+  /** Directory structure */
+  directories: {
+    /** Main component directory */
+    main: string;
+    /** Services subdirectory (if applicable) */
+    services?: string;
+    /** Partials subdirectory (if applicable) */
+    partials?: string;
+  };
+}
+
+export interface TemplateEngine {
+  /** Render a template with context */
+  render(template: string, context: TemplateContext): Promise<string>;
+  /** Compile a template for reuse */
+  compile(template: string): Promise<CompiledTemplate>;
+  /** Register a helper function */
+  registerHelper(name: string, helper: TemplateHelper): void;
+  /** Get available helpers */
+  getHelpers(): Record<string, TemplateHelper>;
+}
+
+export interface CompiledTemplate {
+  /** Render the compiled template */
+  render(context: TemplateContext): Promise<string>;
+  /** Template metadata */
+  metadata: {
+    compiled: Date;
+    source: string;
+  };
+}
+
+export type TemplateHelper = (context: TemplateContext, ...args: any[]) => string | Promise<string>;
+
+export interface TemplateRegistry {
+  /** Get all templates for a layer */
+  getTemplatesForLayer(layer: string): LayerTemplate[];
+  /** Get a specific template */
+  getTemplate(layer: string, name: string): LayerTemplate | null;
+  /** Register a new template */
+  registerTemplate(template: LayerTemplate): void;
+  /** Get layer structure */
+  getLayerStructure(layer: string): LayerStructure | null;
+}

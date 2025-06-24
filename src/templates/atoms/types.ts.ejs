@@ -1,3 +1,4 @@
+import React from 'react';
 import type { ComponentProps } from 'react';
 
 /**
@@ -8,17 +9,37 @@ import type { ComponentProps } from 'react';
  * @namespace <%= namespace %>
  */
 
-export interface <%= namespace %>Props extends ComponentProps<'div'> {
+/**
+ * Props for <%= pascalName %> component
+ */
+export interface <%= pascalName %>Props extends React.HTMLAttributes<HTMLElement> {
+  /** Component children */
+  children?: React.ReactNode;
+  /** Additional CSS classes */
+  className?: string;
   /**
    * Test identifier for testing purposes
    * @default '<%= kebabName %>'
    */
   testID?: string;
-  
   /**
    * Additional custom props for <%= pascalName %>
    */
   // Add your custom props here
+  <% if (features.includes('variants')) { -%>
+  /** Component variant */
+  variant?: 'primary' | 'secondary' | 'outline';
+  /** Component size */
+  size?: 'sm' | 'md' | 'lg';
+  <% } -%>
+  <% if (features.includes('loading-states')) { -%>
+  /** Loading state */
+  loading?: boolean;
+  <% } -%>
+  <% if (features.includes('disabled')) { -%>
+  /** Disabled state */
+  disabled?: boolean;
+  <% } -%>
 }
 
 export type <%= namespace %>Ref = HTMLDivElement;
@@ -30,3 +51,23 @@ export interface <%= namespace %>Config {
   defaultTestID: string;
   // Add configuration options here
 }
+
+<% if (features.includes('variants')) { -%>
+/**
+ * Available variants for <%= pascalName %>
+ */
+export const <%= camelName %>Variants = {
+  primary: 'bg-blue-500 text-white',
+  secondary: 'bg-gray-500 text-white',
+  outline: 'border border-blue-500 text-blue-500'
+} as const;
+
+/**
+ * Available sizes for <%= pascalName %>
+ */
+export const <%= camelName %>Sizes = {
+  sm: 'px-2 py-1 text-sm',
+  md: 'px-4 py-2 text-base',
+  lg: 'px-6 py-3 text-lg'
+} as const;
+<% } -%>
