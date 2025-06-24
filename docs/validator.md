@@ -21,8 +21,10 @@ O sistema de validação do Khaos CLI garante **100% de conformidade** com a arq
 ```typescript
 interface AtomValidationRules {
   requiredFiles: ['index.ts', '*.atom.tsx', '*.type.ts'];
-  optionalFiles: ['*.constant.ts', '*.variant.ts', '*.mock.ts', '*.stories.tsx', '*.spec.ts'];
-  restrictedFiles: ['*.use-case.ts', '*.service.ts', '_partials/', '_services/'];
+  optionalFiles: ['*.constant.ts', '*.mock.ts', '*.spec.ts'];
+  restrictedFiles: ['*.variant.ts', '*.stories.tsx', '*.use-case.ts', '*.service.ts', '_partials/', '_services/'];
+  exportRestrictions: ['*.variant.ts', '*.stories.tsx', '*.spec.ts']; // Não exportar no index.ts
+  compositionRoot: true; // Atoms têm composition root
 }
 ```
 
@@ -36,6 +38,8 @@ interface AtomValidationRules {
 - ✅ Componente deve usar `testID={`${testID}-atom`}`
 - ✅ Exports centralizados em [`index.ts`](index.ts)
 - ✅ Namespace obrigatório em [`*.type.ts`](*.type.ts)
+- ✅ Composition root implementado
+- ❌ Não exportar [`variant.ts`](variant.ts), [`stories.tsx`](stories.tsx), [`spec.ts`](spec.ts) no [`index.ts`](index.ts)
 - ❌ Não pode ter lógica complexa ou hooks customizados
 
 ---
@@ -69,6 +73,8 @@ interface OrganismValidationRules {
   requiredFiles: ['index.ts', '*.organism.tsx', '*.type.ts', '*.use-case.ts'];
   optionalFiles: ['*.constant.ts', '*.variant.ts', '*.mock.ts', '*.stories.tsx', '*.spec.ts'];
   conditionalFiles: ['_partials/*.partial.tsx', '_services/*.service.ts', '*.scheme.ts', '*.context.tsx'];
+  compositionRoot: true; // Organisms têm composition root
+  canMakeDirectAPICalls: true; // Organisms podem fazer chamadas diretas de API
 }
 ```
 
@@ -77,6 +83,8 @@ interface OrganismValidationRules {
 - ✅ Tipos de partials devem estar no [`*.type.ts`](*.type.ts) principal
 - ✅ Lógica centralizada no [`use-case.ts`](use-case.ts)
 - ✅ Partials devem ser "burros" (sem lógica)
+- ✅ Composition root implementado
+- ✅ Podem fazer chamadas diretas de API (diferente de outras camadas)
 
 ---
 
@@ -88,14 +96,20 @@ interface TemplateValidationRules {
   requiredFiles: ['index.ts', '*.template.tsx', '*.type.ts'];
   optionalFiles: ['_partials/*.partial.tsx'];
   restrictedFiles: ['*.use-case.ts', '*.scheme.ts', '*.mock.ts', '*.context.tsx', '*.constant.ts', '*.service.ts', '*.gateway.ts'];
+  compositionRoot: true; // Templates têm composition root
+  dependencyRestrictions: ['features']; // Templates não podem depender de Features
+  allowedDependencies: ['atoms', 'molecules', 'organisms']; // Templates dependem de componentes
 }
 ```
 
 #### Validações Específicas
 - ✅ Foco em layout visual
 - ✅ Pode usar padrão de composição com `children`
+- ✅ Composition root implementado
+- ✅ Dependem de Atoms/Molecules/Organisms (não Features)
 - ❌ Não pode ter lógica de negócio
 - ❌ Não pode ter use-cases ou services
+- ❌ Não pode depender de Features
 
 ---
 
@@ -107,6 +121,8 @@ interface FeatureValidationRules {
   requiredFiles: ['index.ts', '*.feature.tsx', '*.type.ts', '*.use-case.ts'];
   conditionalFiles: ['_services/*.service.tsx'];
   namingPattern: /^[a-z]+-[a-z-]+\.feature\.tsx$/; // Deve ter prefixo do layout
+  renderingRestriction: ['templates']; // Features renderizam exclusivamente templates
+  hierarchyPosition: 'top'; // Features estão no topo da hierarquia
 }
 ```
 
@@ -114,6 +130,8 @@ interface FeatureValidationRules {
 - ✅ Nome deve ter prefixo do layout (ex: `wallet-deposit.feature.tsx`)
 - ✅ Deve ter [`use-case.ts`](use-case.ts) para orquestrar services
 - ✅ Services múltiplos devem estar em [`_services/`](_services/)
+- ✅ Renderizam exclusivamente templates (não componentes diretamente)
+- ✅ Estão no topo da hierarquia de dependências
 
 ---
 
@@ -186,6 +204,7 @@ interface EntityValidationRules {
 interface UtilValidationRules {
   requiredFiles: ['*.util.ts'];
   characteristics: 'pure-functions-only';
+  usageRestrictions: ['entity', 'gateway', 'repository', 'model']; // Utils não podem ser usados nessas camadas
 }
 ```
 
@@ -193,6 +212,7 @@ interface UtilValidationRules {
 - ✅ Funções utilitárias puras
 - ✅ Sem efeitos colaterais
 - ✅ Testáveis e reutilizáveis
+- ❌ Não podem ser usados em Entity, Gateway, Repository, Model
 
 ---
 

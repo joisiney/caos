@@ -4,6 +4,23 @@ Utils são **funções utilitárias puras** que fornecem funcionalidades reutili
 
 > ❗️Utils devem ser **funções puras** - dado o mesmo input, sempre retornam o mesmo output, sem efeitos colaterais.
 
+## 🔗 Restrições de Uso
+
+**Utils NÃO podem ser usados em:**
+- Entity
+- Gateway
+- Repository
+- Model
+
+**Utils PODEM ser usados em:**
+- Atom
+- Molecule
+- Organism
+- Template
+- Feature
+- UseCase
+- Service
+
 ---
 
 ## 🔹 Estrutura `src/utils/{name}`

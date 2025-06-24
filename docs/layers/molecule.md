@@ -312,7 +312,28 @@ khaos check molecule
 
 ---
 
-## 📚 Boas Práticas
+## 🔧 Composition Root
+
+Molecules **podem fazer** composition root quando necessário para coordenar dependências entre atoms.
+
+```typescript
+// ✅ Permitido - composition root em molecule
+const SearchForm: React.FC<SearchFormProps> = (props) => {
+  const validator = useValidator();     // composition root
+  const analytics = useAnalytics();     // composition root
+  
+  return (
+    <form>
+      <Input validator={validator} />
+      <Button onClick={analytics.track} />
+    </form>
+  );
+};
+```
+
+---
+
+## � Boas Práticas
 
 * [Convenções Gerais](../general-conventions.md)
 * [Validação Hermes](../validator.md)

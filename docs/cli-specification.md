@@ -8,6 +8,40 @@ Este documento detalha as especificações técnicas completas do Khaos CLI, inc
 
 O **Khaos CLI** é uma ferramenta de linha de comando inteligente que automatiza a criação, validação e manutenção de código seguindo rigorosamente a arquitetura Khaos. O foco principal é garantir **conformidade absoluta** com as convenções estabelecidas através de validação rigorosa e geração inteligente de código.
 
+## 🔄 Modo Interativo vs Linha de Comando
+
+O CLI Khaos oferece duas formas de uso para máxima flexibilidade:
+
+### 🔄 Modo Interativo (Padrão)
+Quando executado sem parâmetros completos, o CLI entra em modo interativo com perguntas passo a passo:
+
+```bash
+khaos create feature
+? Qual é o nome de sua feature? strategy/investors
+? Esta página é pública ou autenticada? private
+? Posso criar o template também? sim
+✅ Feature strategy/investors criada com sucesso!
+```
+
+**Vantagens:**
+- Guia iniciantes através do processo
+- Reduz erros de sintaxe
+- Descobre opções disponíveis
+- Experiência mais amigável
+
+### ⚡ Modo Linha de Comando (Avançado)
+Para usuários experientes que preferem comandos completos:
+
+```bash
+khaos create feature strategy/investors --route-type=private --with-template
+```
+
+**Vantagens:**
+- Execução mais rápida
+- Ideal para scripts e automação
+- Controle total sobre parâmetros
+- Compatível com CI/CD
+
 ### 🎯 Objetivos Principais
 
 1. **Validação Rigorosa**: Sistema que garante 100% de conformidade com a arquitetura Khaos
@@ -129,6 +163,42 @@ khaos create molecule modal --ai-provider=openai --template=custom
 khaos create layout (app)/(private)/strategy --type=stack --with-expo-router
 ```
 
+#### Fluxos Interativos por Camada
+
+**Molécula:**
+```bash
+khaos create molecule
+? Qual é o nome da molécula? LoginForm
+? Incluir hooks customizados? sim
+? Adicionar utilitários específicos? não
+? Incluir arquivos de teste? sim
+? Usar validação de formulário? sim
+✅ Molécula LoginForm criada com sucesso!
+```
+
+**Organismo:**
+```bash
+khaos create organism
+? Qual é o nome do organismo? Header
+? Incluir sub-componentes? sim
+? Adicionar hooks customizados? sim
+? Incluir utilitários específicos? não
+? Incluir arquivos de teste? sim
+? Tipo de organismo: Navigation, Content ou Layout? navigation
+✅ Organismo Header criado com sucesso!
+```
+
+**Template:**
+```bash
+khaos create template
+? Qual é o nome do template? Dashboard
+? Incluir sub-componentes? sim
+? Adicionar hooks customizados? não
+? Incluir arquivos de teste? sim
+? Quais componentes usar: Atoms, Molecules, Organisms? atoms,molecules,organisms
+✅ Template Dashboard criado com sucesso!
+```
+
 **Flags Disponíveis:**
 - `--smart`: Criação inteligente com IA
 - `--with-tests`: Incluir arquivos de teste
@@ -136,11 +206,18 @@ khaos create layout (app)/(private)/strategy --type=stack --with-expo-router
 - `--with-mocks`: Incluir arquivos de mock
 - `--with-variants`: Incluir arquivo de variantes (CVA)
 - `--with-constants`: Incluir arquivo de constantes
-- `--type`: Tipo de layout (stack|tabs|drawer) - perguntado após especificar diretório
+- `--with-hooks`: Incluir hooks customizados
+- `--with-utils`: Incluir utilitários específicos
+- `--with-components`: Incluir sub-componentes
+- `--type`: Tipo específico (component|constant|type|util para atoms; stack|tabs|drawer para layouts)
 - `--route-type`: Tipo de rota para features (public|private)
 - `--route-path`: Caminho da rota no app (ex: strategy/investors)
+- `--with-template`: Criar template associado (para features)
+- `--with-layout`: Criar layout específico (para features)
+- `--with-navigation`: Incluir componentes de navegação (para layouts)
+- `--with-sidebar`: Incluir sidebar (para layouts)
 - `--with-expo-router`: Usar padrões Expo Router (padrão: true)
-- `--ai-provider`: Escolher provider de IA (openai|anthropic)
+- `--ai-provider`: Escolher provider de IA (openai|anthropic|openrouter)
 - `--template`: Template customizado
 - `--dry-run`: Simular sem criar arquivos
 
@@ -398,17 +475,35 @@ interface CodeGeneration {
 ```typescript
 interface ValidationConfig {
   atoms: {
-    requiredFiles: string[];
-    optionalFiles: string[];
-    restrictedFiles: string[];
+    requiredFiles: ['index.ts', '*.atom.tsx', '*.type.ts'];
+    optionalFiles: ['*.constant.ts', '*.mock.ts', '*.spec.ts'];
+    restrictedFiles: ['*.variant.ts', '*.stories.tsx', '*.use-case.ts', '_services/'];
     namingConventions: NamingRules;
     structureRules: StructureRules;
+    compositionRoot: true; // Atoms têm composition root
   };
   molecules: {
     requiredFiles: string[];
     mustImportAtoms: boolean;
     mustHaveUseCase: boolean;
     restrictedFiles: string[];
+    compositionRoot: true; // Molecules têm composition root
+  };
+  organisms: {
+    requiredFiles: string[];
+    canMakeDirectAPICalls: true; // Organisms podem fazer chamadas diretas de API
+    compositionRoot: true; // Organisms têm composition root
+  };
+  templates: {
+    requiredFiles: string[];
+    dependsOn: ['atoms', 'molecules', 'organisms']; // Templates dependem de componentes, não Features
+    restrictedDependencies: ['features'];
+    compositionRoot: true; // Templates têm composition root
+  };
+  features: {
+    requiredFiles: string[];
+    renderExclusively: ['templates']; // Features renderizam exclusivamente templates
+    hierarchyPosition: 'top'; // Features estão no topo da hierarquia
   };
   layouts: {
     requiredFiles: ['_layout.tsx'];
@@ -431,7 +526,22 @@ interface ValidationConfig {
     queryKeyPattern: RegExp;
     restrictedFiles: string[];
   };
-  // ... outras camadas
+  utils: {
+    restrictedUsage: ['entity', 'gateway', 'repository', 'model']; // Utils não podem ser usados nessas camadas
+    pureFunctionsOnly: true;
+  };
+  // Hierarquia corrigida: App → Feature → Template → Components
+  hierarchy: {
+    order: ['app', 'feature', 'template', 'organism', 'molecule', 'atom'];
+    dependencies: {
+      app: ['feature'],
+      feature: ['template'],
+      template: ['organism', 'molecule', 'atom'],
+      organism: ['molecule', 'atom'],
+      molecule: ['atom'],
+      atom: []
+    };
+  };
 }
 ```
 
@@ -443,11 +553,20 @@ export const AtomSchema = z.object({
     'index.ts': z.string(),
     '*.atom.tsx': z.string(),
     '*.type.ts': z.string(),
+    '*.constant.ts': z.string().optional(),
+    '*.mock.ts': z.string().optional(),
+    '*.spec.ts': z.string().optional(),
   }),
   structure: z.object({
     hasTestID: z.boolean(),
     exportsFromIndex: z.boolean(),
     usesNamespace: z.boolean(),
+    hasCompositionRoot: z.boolean(), // Atoms têm composition root
+  }),
+  restrictions: z.object({
+    noVariantExport: z.boolean(), // variant.ts não exportado no index.ts
+    noStoriesExport: z.boolean(), // stories.tsx não exportado no index.ts
+    noSpecExport: z.boolean(), // spec.ts não exportado no index.ts
   }),
 });
 
@@ -502,6 +621,65 @@ export const RepositorySchema = z.object({
     hasQueryClient: z.boolean(),
     hasInvalidation: z.boolean(),
     queryKeysPattern: z.string().regex(/^\[.*\]$/, 'Query keys must be arrays'),
+  }),
+  restrictions: z.object({
+    noUtilsUsage: z.boolean(), // Utils não podem ser usados em repositories
+  }),
+});
+
+export const OrganismSchema = z.object({
+  name: z.string().regex(/^[a-z]+(-[a-z]+)*$/, 'Must be dash-case'),
+  files: z.object({
+    'index.ts': z.string(),
+    '*.organism.tsx': z.string(),
+    '*.type.ts': z.string(),
+    '*.use-case.ts': z.string(),
+  }),
+  structure: z.object({
+    hasTestID: z.boolean(),
+    exportsFromIndex: z.boolean(),
+    usesNamespace: z.boolean(),
+    hasCompositionRoot: z.boolean(), // Organisms têm composition root
+    canMakeDirectAPICalls: z.boolean(), // Organisms podem fazer chamadas diretas de API
+  }),
+});
+
+export const TemplateSchema = z.object({
+  name: z.string().regex(/^[a-z]+(-[a-z]+)*$/, 'Must be dash-case'),
+  files: z.object({
+    'index.ts': z.string(),
+    '*.template.tsx': z.string(),
+    '*.type.ts': z.string(),
+  }),
+  structure: z.object({
+    hasTestID: z.boolean(),
+    exportsFromIndex: z.boolean(),
+    usesNamespace: z.boolean(),
+    hasCompositionRoot: z.boolean(), // Templates têm composition root
+  }),
+  dependencies: z.object({
+    canDependOn: z.array(z.enum(['atom', 'molecule', 'organism'])),
+    cannotDependOn: z.array(z.enum(['feature'])), // Templates não dependem de Features
+  }),
+});
+
+export const FeatureSchema = z.object({
+  name: z.string().regex(/^[a-z]+(-[a-z]+)*$/, 'Must be dash-case'),
+  files: z.object({
+    'index.ts': z.string(),
+    '*.feature.tsx': z.string(),
+    '*.type.ts': z.string(),
+    '*.use-case.ts': z.string(),
+  }),
+  structure: z.object({
+    hasTestID: z.boolean(),
+    exportsFromIndex: z.boolean(),
+    usesNamespace: z.boolean(),
+    renderExclusively: z.array(z.enum(['template'])), // Features renderizam exclusivamente templates
+  }),
+  hierarchy: z.object({
+    isTopLevel: z.boolean(), // Features estão no topo da hierarquia
+    dependsOn: z.array(z.enum(['template'])),
   }),
 });
 ```

@@ -94,7 +94,9 @@ export const buttonVariant = cva(
 );
 ```
 
-> ❌ Nunca exportar `variant.ts` no `index.ts`.
+> ❌ **NUNCA** exportar `variant.ts`, `stories.tsx` e `spec.ts` no `index.ts`.
+
+**REGRA IMPORTANTE:** Atoms **NUNCA** devem exportar `variant.ts`, `stories.tsx` e `spec.ts` no `index.ts`. Estes arquivos são apenas para desenvolvimento e testes.
 
 ---
 
@@ -207,25 +209,78 @@ export const mockButtonSectionDtos = (
 
 ## 🔧 CLI Khaos
 
+### Modo Interativo
+Quando executado sem parâmetros completos, o CLI guia através de perguntas:
+
 ```bash
 khaos create atom
+? Qual é o nome do átomo? Button
+? Tipo do átomo: Component, Constant, Type ou Util? component
+? Incluir arquivos de teste? sim
+? Adicionar Storybook stories? sim
+? Usar styled-components? não
+? Incluir arquivo de constantes? sim
+? Incluir arquivo de variantes (CVA)? sim
+? Incluir arquivo de mock? sim
+✅ Átomo Button criado com sucesso!
+```
+
+**Fluxo de Perguntas:**
+1. **Nome do átomo**: Nome do componente (ex: `Button`, `Input`, `Icon`)
+2. **Tipo do átomo**: `component`, `constant`, `type`, ou `util`
+3. **Arquivos de teste**: Se deve incluir `.spec.tsx`
+4. **Storybook stories**: Se deve incluir `.stories.tsx`
+5. **Styling**: Styled-components, CSS modules, ou Tailwind
+6. **Arquivo de constantes**: Se deve incluir `.constant.ts`
+7. **Arquivo de variantes**: Se deve incluir `.variant.ts` (CVA)
+8. **Arquivo de mock**: Se deve incluir `.mock.ts`
+
+### Modo Linha de Comando
+Para usuários avançados que preferem comandos completos:
+
+```bash
+# Átomo componente simples
+khaos create atom Button --type=component
+
+# Átomo com todas as opções
+khaos create atom Button --type=component --with-tests --with-stories --with-constants --with-variants --with-mocks
+
+# Outros comandos
 khaos update atom
 khaos check atom
 khaos delete atom
+```
+
+### Exemplos Comparativos
+
+**Modo Interativo:**
+```bash
+khaos create atom
+? Qual é o nome do átomo? Input
+? Tipo do átomo: Component, Constant, Type ou Util? component
+? Incluir arquivos de teste? sim
+? Adicionar Storybook stories? não
+? Incluir arquivo de constantes? não
+? Incluir arquivo de variantes (CVA)? sim
+? Incluir arquivo de mock? sim
+```
+
+**Equivalente em Linha de Comando:**
+```bash
+khaos create atom Input --type=component --with-tests --with-variants --with-mocks
 ```
 
 ---
 
 ### ✨ Criar Átomo
 
-1. Informar o propósito
-2. Nome do átomo
-3. Selecionar camadas opcionais:
-
+1. **Informar o propósito**: Através do modo interativo ou flags
+2. **Nome do átomo**: Perguntado interativamente ou passado como parâmetro
+3. **Selecionar camadas opcionais**:
    * `.constant.ts` // Opcional
    * `.variant.ts` // Opcional
    * `.mock.ts` com ou sem `Dtos` e `SectionDtos` // Opcional
-4. Estrutura sugerida:
+4. **Estrutura sugerida**:
 
    ```text
    src/atoms/
@@ -239,11 +294,41 @@ khaos delete atom
    │   ├── button.stories.tsx
    │   └── button.spec.ts
    ```
-5. Commit automático:
+5. **Commit automático**:
 
    ```bash
    ✨ feat(atom): estrutura base de `button` (wip)
    ```
+
+### Tipos de Átomo Disponíveis
+
+#### Component
+Componente React reutilizável:
+```bash
+khaos create atom
+? Tipo do átomo: Component, Constant, Type ou Util? component
+```
+
+#### Constant
+Constantes e configurações:
+```bash
+khaos create atom
+? Tipo do átomo: Component, Constant, Type ou Util? constant
+```
+
+#### Type
+Definições de tipos TypeScript:
+```bash
+khaos create atom
+? Tipo do átomo: Component, Constant, Type ou Util? type
+```
+
+#### Util
+Funções utilitárias:
+```bash
+khaos create atom
+? Tipo do átomo: Component, Constant, Type ou Util? util
+```
 
 ---
 
@@ -279,7 +364,23 @@ Resumo: 1/3 átomos válidos
 
 ---
 
-## 📚 Boas Práticas
+## 🔧 Composition Root
+
+Atoms **podem fazer** composition root quando necessário para configurar dependências internas do componente.
+
+```typescript
+// ✅ Permitido - composition root em atom
+const ButtonAtom: React.FC<ButtonProps> = (props) => {
+  const analytics = useAnalytics(); // composition root
+  const theme = useTheme();         // composition root
+  
+  return <button {...props} />;
+};
+```
+
+---
+
+## � Boas Práticas
 
 * [Convenções Gerais](../general-conventions.md)
 * [Validação Hermes](../validator.md)

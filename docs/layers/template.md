@@ -220,6 +220,7 @@ Resumo: 1/3 templates válidos
 * Usar `children` apenas em composition root
 * Incluir `_partials/` para otimizar renderizações pesadas
 * Aplicar lógica **visual leve** (ex: `if`, `&&`, `?.`, `map()`)
+* **Fazer composition root** quando necessário
 
 ❌ **Não pode:**
 
@@ -227,6 +228,16 @@ Resumo: 1/3 templates válidos
 * Incluir qualquer `hook` (`useEffect`, `useMemo`, etc)
 * Renderizar lógica de negócio
 * Exportar `variant.ts`, `mock.ts`, `spec.ts` ou `stories.tsx`
+
+## 🔗 Dependências Corretas
+
+**Templates podem importar de:**
+- Atoms, Molecules, Organisms (**não Features**)
+- Utils
+
+**Templates NÃO podem importar:**
+- Features (isso criaria dependência circular)
+- Gateways, Repositories, Models, Entities diretamente
 
 ---
 

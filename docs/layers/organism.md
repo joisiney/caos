@@ -245,3 +245,35 @@ khaos delete organism
 * Todos os `_partial` devem ser "burros" (sem lógica).
 * Qualquer lógica deve ser centralizada no `use-case`.
 * Os tipos de `_partial` devem estar definidos dentro de `type.ts`.
+
+---
+
+## 🔧 Chamadas de API e Composition Root
+
+Organisms **podem fazer** chamadas diretas de API quando necessário para sua funcionalidade e **podem fazer** composition root.
+
+```typescript
+// ✅ Permitido - chamada direta de API
+const UserList = () => {
+  const [users, setUsers] = useState([]);
+  
+  useEffect(() => {
+    fetch('/api/users').then(setUsers); // ✅ Permitido
+  }, []);
+  
+  return <div>{users.map(user => <UserCard key={user.id} user={user} />)}</div>;
+};
+
+// ✅ Permitido - composition root em organism
+const ProfileHeader: React.FC<ProfileHeaderProps> = (props) => {
+  const analytics = useAnalytics();     // composition root
+  const userService = useUserService(); // composition root
+  
+  return (
+    <View>
+      <Avatar />
+      <UserInfo />
+    </View>
+  );
+};
+```

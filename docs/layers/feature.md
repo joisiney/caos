@@ -17,7 +17,7 @@ Features são a **camada final de apresentação** de uma funcionalidade. Ela **
   * `{name}.types.ts`
   * `{name}.use-case.ts`
   * `_services/{service-name}.service.ts` // Se houver mais de uma responsabilidade
-  * `repository/{name}.repository.ts` // Obrigatório
+  * `_repositories/{name}.repository.ts` // Obrigatório
 
 > ✅ Todos os tipos devem estar agrupados na `namespace` no arquivo `.types.ts`
 
@@ -32,7 +32,7 @@ src/features/
 │   ├── strategy-overview.feature.tsx
 │   ├── strategy-overview.types.ts
 │   ├── strategy-overview.use-case.ts
-│   ├── repository/
+│   ├── _repositories/
 │   │   └── strategy.repository.ts
 │   └── _services/
 │       └── animation.service.ts // Opcional
@@ -60,7 +60,7 @@ export const StrategyOverviewFeature: FC<NStrategyOverviewFeature.Props> = (prop
 ## 📄 Exemplo `strategy-overview.use-case.ts`
 
 ```ts
-import {useStrategyRepository} from './repository/strategy.repository';
+import {useStrategyRepository} from './_repositories/strategy.repository';
 
 export const useUseCase = () => {
   const {findOneById} = useStrategyRepository();
@@ -108,11 +108,56 @@ export * from './strategy-overview.types';
 
 ## 🔧 CLI Khaos
 
+### Modo Interativo
+Quando executado sem parâmetros completos, o CLI guia através de perguntas:
+
 ```bash
-khaos create feature strategy/investors --route-type=private
+khaos create feature
+? Qual é o nome de sua feature? strategy/investors
+? Esta página é pública ou autenticada? private
+? Posso criar o template também? sim
+? Precisa de layout específico? não
+✅ Feature strategy/investors criada com sucesso!
+```
+
+**Fluxo de Perguntas:**
+1. **Nome da feature**: Caminho completo (ex: `auth/login`, `dashboard/analytics`)
+2. **Tipo de rota**: `public`, `private`, ou `auth`
+3. **Template associado**: Se deve criar template junto
+4. **Layout específico**: Se precisa de layout customizado
+5. **Componentes extras**: Hooks, utils, types específicos
+
+### Modo Linha de Comando
+Para usuários avançados que preferem comandos completos:
+
+```bash
+# Criar feature com rota privada
+khaos create feature strategy/investors --route-type=private --with-template
+
+# Criar feature com rota pública
 khaos create feature auth/login --route-type=public
+
+# Validar features
 khaos check feature
+
+# Remover feature
 khaos delete feature
+```
+
+### Exemplos Comparativos
+
+**Modo Interativo:**
+```bash
+khaos create feature
+? Qual é o nome de sua feature? auth/login
+? Esta página é pública ou autenticada? public
+? Posso criar o template também? não
+? Precisa de layout específico? não
+```
+
+**Equivalente em Linha de Comando:**
+```bash
+khaos create feature auth/login --route-type=public
 ```
 
 ---
@@ -132,18 +177,8 @@ Ao criar uma feature, uma **rota é automaticamente gerada** seguindo o padrão 
 #### Flags Disponíveis:
 - `--route-type=public|private`: Define se a rota é pública ou privada
 - `--route-path=strategy/investors`: Define o caminho da rota no app
-
-#### Exemplos de Comandos:
-```bash
-# Criar feature com rota privada
-khaos create feature strategy/investors --route-type=private
-
-# Criar feature com rota pública
-khaos create feature auth/login --route-type=public
-
-# Criar feature sem rota (modo interativo)
-khaos create feature dashboard/overview
-```
+- `--with-template`: Criar template associado
+- `--with-layout`: Criar layout específico
 
 #### Estrutura Gerada:
 
@@ -154,7 +189,7 @@ src/features/strategy-investors/
 ├── strategy-investors.feature.tsx
 ├── strategy-investors.types.ts
 ├── strategy-investors.use-case.ts
-├── repository/
+├── _repositories/
 │   └── strategy-investors.repository.ts
 └── _services/ (opcional)
 ```
@@ -218,9 +253,11 @@ Resumo: 1/3 features válidas
 ❌ **Não pode:**
 
 * Usar JSX/HTML direto (View, Text, etc)
-* Renderizar átomos, moléculas ou organismos diretamente
+* **Renderizar átomos, moléculas ou organismos diretamente. Renderiza exclusivamente template.**
 * Incluir qualquer `mock`, `story`, `spec`, `variant`, etc
 * Importar gateways diretamente (deve usar `repository`)
+
+**REGRA IMPORTANTE:** Features **NÃO** podem renderizar átomos, moléculas ou organismos diretamente. Elas devem renderizar **exclusivamente templates**.
 
 ---
 

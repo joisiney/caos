@@ -79,27 +79,42 @@ mkdir -p src/core/{validators,parsers,ai,utils}
 mkdir -p src/commands/{create,validate,analyze,refactor}
 mkdir -p src/templates/{atoms,molecules,organisms,templates,features}
 mkdir -p src/schemas/{layer-schemas,convention-schemas}
+mkdir -p src/prompts/{interactive,layer-prompts}
 
 # 3. Configurar ferramentas de desenvolvimento
 npm install --save-dev jest @types/jest ts-jest
 npm install --save-dev eslint @typescript-eslint/parser
 npm install --save-dev prettier
+
+# 4. Instalar dependências para modo interativo
+npm install inquirer @types/inquirer
+npm install chalk ora
 ```
 
 ### 🔍 Semana 3-4: Sistema de Validação Core
 ```bash
-# 4. Implementar validadores base
+# 4. Implementar validadores base com correções da síntese
 touch src/core/validators/architecture-validator.ts
 touch src/core/validators/layer-validators/atom-validator.ts
 touch src/core/validators/layer-validators/molecule-validator.ts
+touch src/core/validators/layer-validators/organism-validator.ts
+touch src/core/validators/layer-validators/template-validator.ts
+touch src/core/validators/layer-validators/feature-validator.ts
+touch src/core/validators/layer-validators/util-validator.ts
 
-# 5. Criar schemas Zod
+# 5. Criar schemas Zod com validações corrigidas
 touch src/schemas/layer-schemas/atom-schema.ts
 touch src/schemas/layer-schemas/molecule-schema.ts
+touch src/schemas/layer-schemas/organism-schema.ts
+touch src/schemas/layer-schemas/template-schema.ts
+touch src/schemas/layer-schemas/feature-schema.ts
+touch src/schemas/layer-schemas/util-schema.ts
 
-# 6. Implementar parser TypeScript
+# 6. Implementar parser TypeScript com validações específicas
 touch src/core/parsers/typescript-parser.ts
 touch src/core/parsers/project-analyzer.ts
+touch src/core/parsers/hierarchy-validator.ts
+touch src/core/parsers/composition-root-validator.ts
 ```
 
 ### 🤖 Semana 5-6: Integração IA Básica
@@ -193,19 +208,33 @@ npm link
 
 ## 🏗️ Estrutura de Desenvolvimento Sugerida
 
-### 📅 Sprint 1 (Semanas 1-4): Fundação Sólida
-**Objetivo**: Sistema de validação funcionando 100%
+### 📅 Sprint 1 (Semanas 1-4): Fundação Sólida + Modo Interativo
+**Objetivo**: Sistema de validação funcionando 100% + Prompts interativos básicos
 
 **Entregáveis**:
-- ✅ Validação completa de átomos e moléculas
-- ✅ Parser TypeScript funcional
+- ✅ Validação completa de todas as camadas com correções da síntese
+- ✅ Parser TypeScript funcional com validação de hierarquia
 - ✅ Comando `khaos validate` operacional
 - ✅ Relatórios de validação detalhados
+- ✅ Validação de composition root para Atoms/Molecules/Organisms/Templates
+- ✅ Validação de restrições de exports para Atoms
+- ✅ Validação de hierarquia corrigida: App → Feature → Template → Components
+- ✅ Sistema de prompts interativos implementado
+- ✅ Modo interativo para criação de Atoms, Features e Layouts
+- ✅ Fallback automático para modo interativo quando parâmetros incompletos
 
 **Critérios de Aceitação**:
 - Validação de projeto médio em < 5 segundos
-- Detecção de 100% das violações documentadas
+- Detecção de 100% das violações documentadas incluindo as correções da síntese
 - Cobertura de testes > 90%
+- Validação correta de que Atoms não exportam variant.ts, stories.tsx, spec.ts no index.ts
+- Validação de que Organisms podem fazer chamadas diretas de API
+- Validação de que Templates dependem de componentes (não Features)
+- Validação de que Features renderizam exclusivamente templates
+- Validação de que Utils não são usados em Entity, Gateway, Repository, Model
+- **Modo interativo funcional para todas as camadas principais**
+- **Experiência de usuário intuitiva com perguntas claras**
+- **Equivalência entre modo interativo e linha de comando**
 
 ### 📅 Sprint 2 (Semanas 5-8): IA Inteligente
 **Objetivo**: Criação inteligente com IA funcionando
@@ -218,8 +247,12 @@ npm link
 
 **Critérios de Aceitação**:
 - Classificação correta em 95% dos casos
-- Código gerado passa 100% nas validações
+- Código gerado passa 100% nas validações incluindo as correções da síntese
 - Fallback gracioso quando IA falha
+- Geração de código respeitando composition root
+- Geração de Atoms sem exports de variant.ts, stories.tsx, spec.ts no index.ts
+- Geração de Templates que dependem de componentes (não Features)
+- Geração de Features que renderizam exclusivamente templates
 
 ### 📅 Sprint 3 (Semanas 9-12): Expansão Completa
 **Objetivo**: Todas as camadas suportadas
@@ -231,9 +264,12 @@ npm link
 - ✅ Comando `khaos analyze` completo
 
 **Critérios de Aceitação**:
-- Criação de qualquer camada com descrição natural
-- Resolução automática de dependências
-- Detecção de code smells funcionando
+- Criação de qualquer camada com descrição natural respeitando hierarquia corrigida
+- Resolução automática de dependências seguindo App → Feature → Template → Components
+- Detecção de code smells funcionando incluindo violações da síntese
+- Geração automática respeitando composition root
+- Validação de restrições de uso de Utils
+- Implementação correta de chamadas diretas de API em Organisms
 
 ### 📅 Sprint 4 (Semanas 13-16): Refinamento e Produção
 **Objetivo**: CLI pronto para produção
@@ -276,11 +312,55 @@ npm install zod chalk ora glob
 npm install ast-types @typescript-eslint/parser
 npm install @tanstack/react-query  # React Query para repositories
 
+# Dependências específicas para modo interativo
+npm install inquirer @types/inquirer
+npm install chalk ora  # Para feedback visual
+npm install figlet @types/figlet  # Para ASCII art
+
 # Instalar dependências de desenvolvimento
 npm install --save-dev typescript ts-node
 npm install --save-dev jest @types/jest ts-jest
 npm install --save-dev eslint prettier
 npm install --save-dev @types/node @types/inquirer
+```
+
+### 🔄 Implementação do Sistema de Prompts Interativos
+
+#### Bibliotecas Necessárias para Modo Interativo
+- **inquirer.js**: Para prompts interativos com validação
+- **chalk**: Para cores e formatação no terminal
+- **ora**: Para spinners de loading durante operações
+- **figlet**: Para ASCII art e branding
+
+#### Estrutura de Implementação
+```bash
+# Criar estrutura de prompts
+mkdir -p src/prompts/{interactive,layer-prompts}
+touch src/prompts/interactive/prompt-manager.ts
+touch src/prompts/layer-prompts/{atom,molecule,organism,template,feature,layout}-prompts.ts
+```
+
+#### Exemplo de Implementação - Prompt Manager
+```typescript
+// src/prompts/interactive/prompt-manager.ts
+import inquirer from 'inquirer';
+import chalk from 'chalk';
+import ora from 'ora';
+
+export class PromptManager {
+  async runInteractiveFlow(layer: string, partialConfig?: any): Promise<any> {
+    console.log(chalk.blue.bold(`\n🚀 Criando ${layer} em modo interativo...\n`));
+    
+    const prompts = this.getPromptsForLayer(layer);
+    const answers = await inquirer.prompt(prompts);
+    
+    const spinner = ora('Processando configuração...').start();
+    const config = this.processAnswers(layer, answers, partialConfig);
+    spinner.succeed('Configuração processada com sucesso!');
+    
+    return config;
+  }
+}
 ```
 
 ### 🧪 Configuração de Testes
@@ -308,9 +388,12 @@ npm pkg set scripts.test:coverage="jest --coverage"
 | Métrica | Meta | Como Medir |
 |---------|------|------------|
 | **Conformidade Arquitetural** | 100% | `khaos validate --report` |
+| **Conformidade com Síntese** | 100% | Validação específica das correções |
 | **Cobertura de Testes** | > 90% | `npm run test:coverage` |
 | **Performance de Validação** | < 5s | Benchmark automático |
 | **Taxa de Erro** | < 1% | Logs de produção |
+| **Validação de Composition Root** | 100% | Validação específica |
+| **Validação de Hierarquia** | 100% | App → Feature → Template → Components |
 
 ### 🤖 Métricas de IA
 | Métrica | Meta | Como Medir |
@@ -320,13 +403,23 @@ npm pkg set scripts.test:coverage="jest --coverage"
 | **Tempo de Geração** | < 3s | Benchmark de performance |
 | **Cache Hit Rate** | > 80% | Analytics de uso |
 
-### 📈 Métricas de Adoção
+### 🔄 Métricas de Modo Interativo
+| Métrica | Meta | Como Medir |
+|---------|------|------------|
+| **Completude de Prompts** | 100% | Todas as camadas com prompts |
+| **Tempo de Fluxo Interativo** | < 30s | Benchmark de UX |
+| **Taxa de Abandono** | < 5% | Analytics de uso |
+| **Equivalência com CLI** | 100% | Testes de paridade |
+| **Validação de Inputs** | 100% | Testes de validação |
+
+### � Métricas de Adoção
 | Métrica | Meta | Como Medir |
 |---------|------|------------|
 | **Tempo de Setup** | < 5min | Documentação + scripts |
 | **Curva de Aprendizado** | < 1h | Tutoriais interativos |
 | **Satisfação do Usuário** | > 4.5/5 | Feedback e surveys |
 | **Bugs Reportados** | < 5/mês | Issue tracking |
+| **Preferência por Modo Interativo** | > 70% | Analytics de uso |
 
 ---
 
@@ -452,11 +545,26 @@ mkdir test-project
 cd test-project
 npm init -y
 
-# Testar validação
+# Testar validação com correções da síntese
 khaos validate
 
-# Testar criação inteligente
+# Testar validação específica de atoms (sem exports de variant.ts, stories.tsx, spec.ts)
+khaos validate --layer=atoms --check-exports
+
+# Testar validação de hierarquia
+khaos validate --hierarchy
+
+# Testar criação inteligente respeitando composition root
 khaos create --smart "um botão reutilizável"
+
+# Testar criação de organism com chamadas de API
+khaos create organism header --with-api-calls
+
+# Testar criação de template que depende de componentes
+khaos create template dashboard --depends-on=atoms,molecules,organisms
+
+# Testar criação de feature que renderiza templates
+khaos create feature strategy/investors --render-templates-only
 ```
 
 ### 📊 Verificar Métricas (1 minuto)
@@ -478,10 +586,10 @@ khaos analyze --dashboard
 Este roadmap representa a consolidação de um planejamento técnico abrangente e detalhado. Com **23 documentos de especificação**, **arquitetura modular bem definida** e **estratégia de implementação clara**, o projeto está pronto para iniciar a fase de desenvolvimento.
 
 ### 🏆 Próximos Marcos
-1. **Sprint 1 Completo** (4 semanas) - Sistema de validação funcionando
-2. **MVP com IA** (8 semanas) - Criação inteligente operacional  
-3. **Beta Release** (12 semanas) - Todas as camadas suportadas
-4. **Produção** (16 semanas) - CLI completo e otimizado
+1. **Sprint 1 Completo** (4 semanas) - Sistema de validação funcionando com correções da síntese
+2. **MVP com IA** (8 semanas) - Criação inteligente operacional respeitando hierarquia corrigida
+3. **Beta Release** (12 semanas) - Todas as camadas suportadas com composition root
+4. **Produção** (16 semanas) - CLI completo e otimizado com validações da síntese
 
 ### 🚀 Comando para Iniciar
 ```bash

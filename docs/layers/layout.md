@@ -476,11 +476,58 @@ describe('Layout: <WalletLayout />', () => {
 
 ## 🔧 CLI Khaos
 
+### Modo Interativo
+Quando executado sem parâmetros completos, o CLI guia através de perguntas:
+
 ```bash
 khaos create layout
+? Qual diretório para o layout? (app)/(private)/strategy
+? Tipo de layout: Stack, Tabs ou Drawer? stack
+? Incluir componentes de navegação? sim
+? Adicionar sidebar? não
+✅ Layout criado em (app)/(private)/strategy!
+```
+
+**Fluxo de Perguntas:**
+1. **Diretório do layout**: Caminho onde será criado (ex: `(auth)`, `(private)/dashboard`)
+2. **Tipo de layout**: `stack`, `tabs`, ou `drawer`
+3. **Componentes de navegação**: Se deve incluir header, breadcrumbs, etc.
+4. **Sidebar**: Se deve incluir barra lateral
+5. **Configurações extras**: Responsividade, temas, etc.
+
+### Modo Linha de Comando
+Para usuários avançados que preferem comandos completos:
+
+```bash
+# Layout de autenticação
+khaos create layout (auth) --type=stack
+
+# Layout privado com sidebar
+khaos create layout (private)/dashboard --type=stack --with-sidebar
+
+# Layout com tabs
+khaos create layout (public)/tabs --type=tabs
+
+# Outros comandos
 khaos update layout
 khaos check layout
 khaos delete layout
+```
+
+### Exemplos Comparativos
+
+**Modo Interativo:**
+```bash
+khaos create layout
+? Qual diretório para o layout? (private)/dashboard
+? Tipo de layout: Stack, Tabs ou Drawer? stack
+? Incluir componentes de navegação? sim
+? Adicionar sidebar? sim
+```
+
+**Equivalente em Linha de Comando:**
+```bash
+khaos create layout (private)/dashboard --type=stack --with-navigation --with-sidebar
 ```
 
 ---
@@ -585,11 +632,12 @@ Resumo: 1/3 layouts válidos
 - **Prover tipagem** para opções de navegação (opcional)
 
 ### ❌ O que Layouts NÃO devem fazer:
-- **Implementar lógica de negócio** (isso é responsabilidade das features)
 - **Conter elementos visuais** (apenas configuração de navegação)
 - **Gerenciar estado de dados** (apenas estrutura de navegação)
-- **Fazer chamadas para APIs** (usar features para isso)
-- **Ter arquivos desnecessários** como stories, variants, mocks, use-cases, services
+- **Ter arquivos desnecessários** como use-cases, services
+- **❌ Não pode ter arquivos: stories.tsx e variant.ts**
+
+**REGRA IMPORTANTE:** Layouts **NÃO** podem ter arquivos `stories.tsx` e `variant.ts`.
 
 ### 🎯 Foco Principal:
 Layouts são **apenas configurações de navegação**. Toda a lógica de interface e negócio fica nas features que são exportadas pelas rotas.

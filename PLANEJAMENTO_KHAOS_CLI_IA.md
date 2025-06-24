@@ -378,7 +378,8 @@ class ValidationEventEmitter {
 interface AtomValidationRules {
   // Estrutura de arquivos
   requiredFiles: ['index.ts', '*.atom.tsx', '*.type.ts'];
-  optionalFiles: ['*.constant.ts', '*.variant.ts', '*.mock.ts', '*.stories.tsx', '*.spec.ts'];
+  optionalFiles: ['*.constant.ts', '*.mock.ts', '*.spec.ts'];
+  restrictedFiles: ['*.variant.ts', '*.stories.tsx', '*.use-case.ts', '*.service.ts'];
   
   // Convenções de nomenclatura
   fileNaming: 'dash-case';
@@ -388,6 +389,10 @@ interface AtomValidationRules {
   mustHaveTestID: true;
   mustExportFromIndex: true;
   mustUseNamespace: true;
+  hasCompositionRoot: true; // Atoms têm composition root
+  
+  // Restrições de export
+  exportRestrictions: ['*.variant.ts', '*.stories.tsx', '*.spec.ts']; // Não exportar no index.ts
 }
 ```
 
@@ -398,6 +403,40 @@ interface MoleculeValidationRules extends AtomValidationRules {
   mustImportAtLeastOneAtom: true;
   mustImplementUseCase: true;
   restrictedFiles: ['partials/', 'mock.ts', 'scheme.ts', 'context.tsx'];
+  hasCompositionRoot: true; // Molecules têm composition root
+}
+
+**Organism Validator:**
+```typescript
+interface OrganismValidationRules extends MoleculeValidationRules {
+  requiredFiles: ['index.ts', '*.organism.tsx', '*.type.ts', '*.use-case.ts'];
+  hasCompositionRoot: true; // Organisms têm composition root
+  canMakeDirectAPICalls: true; // Organisms podem fazer chamadas diretas de API
+}
+
+**Template Validator:**
+```typescript
+interface TemplateValidationRules {
+  requiredFiles: ['index.ts', '*.template.tsx', '*.type.ts'];
+  hasCompositionRoot: true; // Templates têm composition root
+  dependencyRestrictions: ['features']; // Templates não podem depender de Features
+  allowedDependencies: ['atoms', 'molecules', 'organisms']; // Templates dependem de componentes
+}
+
+**Feature Validator:**
+```typescript
+interface FeatureValidationRules {
+  requiredFiles: ['index.ts', '*.feature.tsx', '*.type.ts', '*.use-case.ts'];
+  renderingRestriction: ['templates']; // Features renderizam exclusivamente templates
+  hierarchyPosition: 'top'; // Features estão no topo da hierarquia
+}
+
+**Utils Validator:**
+```typescript
+interface UtilValidationRules {
+  requiredFiles: ['*.util.ts'];
+  characteristics: 'pure-functions-only';
+  usageRestrictions: ['entity', 'gateway', 'repository', 'model']; // Utils não podem ser usados nessas camadas
 }
 
 **Layout Validator (Expo Router):**
@@ -431,16 +470,90 @@ export const AtomSchema = z.object({
     '*.atom.tsx': z.string(),
     '*.type.ts': z.string(),
     '*.constant.ts': z.string().optional(),
-    '*.variant.ts': z.string().optional(),
     '*.mock.ts': z.string().optional(),
-    '*.stories.tsx': z.string().optional(),
     '*.spec.ts': z.string().optional(),
   }),
   structure: z.object({
     hasTestID: z.boolean(),
     exportsFromIndex: z.boolean(),
     usesNamespace: z.boolean(),
-  })
+    hasCompositionRoot: z.boolean(), // Atoms têm composition root
+  }),
+  restrictions: z.object({
+    noVariantExport: z.boolean(), // variant.ts não exportado no index.ts
+    noStoriesExport: z.boolean(), // stories.tsx não exportado no index.ts
+    noSpecExport: z.boolean(), // spec.ts não exportado no index.ts
+  }),
+});
+
+export const OrganismSchema = z.object({
+  name: z.string().regex(/^[a-z]+(-[a-z]+)*$/, 'Must be dash-case'),
+  files: z.object({
+    'index.ts': z.string(),
+    '*.organism.tsx': z.string(),
+    '*.type.ts': z.string(),
+    '*.use-case.ts': z.string(),
+  }),
+  structure: z.object({
+    hasTestID: z.boolean(),
+    exportsFromIndex: z.boolean(),
+    usesNamespace: z.boolean(),
+    hasCompositionRoot: z.boolean(), // Organisms têm composition root
+    canMakeDirectAPICalls: z.boolean(), // Organisms podem fazer chamadas diretas de API
+  }),
+});
+
+export const TemplateSchema = z.object({
+  name: z.string().regex(/^[a-z]+(-[a-z]+)*$/, 'Must be dash-case'),
+  files: z.object({
+    'index.ts': z.string(),
+    '*.template.tsx': z.string(),
+    '*.type.ts': z.string(),
+  }),
+  structure: z.object({
+    hasTestID: z.boolean(),
+    exportsFromIndex: z.boolean(),
+    usesNamespace: z.boolean(),
+    hasCompositionRoot: z.boolean(), // Templates têm composition root
+  }),
+  dependencies: z.object({
+    canDependOn: z.array(z.enum(['atom', 'molecule', 'organism'])),
+    cannotDependOn: z.array(z.enum(['feature'])), // Templates não dependem de Features
+  }),
+});
+
+export const FeatureSchema = z.object({
+  name: z.string().regex(/^[a-z]+(-[a-z]+)*$/, 'Must be dash-case'),
+  files: z.object({
+    'index.ts': z.string(),
+    '*.feature.tsx': z.string(),
+    '*.type.ts': z.string(),
+    '*.use-case.ts': z.string(),
+  }),
+  structure: z.object({
+    hasTestID: z.boolean(),
+    exportsFromIndex: z.boolean(),
+    usesNamespace: z.boolean(),
+    renderExclusively: z.array(z.enum(['template'])), // Features renderizam exclusivamente templates
+  }),
+  hierarchy: z.object({
+    isTopLevel: z.boolean(), // Features estão no topo da hierarquia
+    dependsOn: z.array(z.enum(['template'])),
+  }),
+});
+
+export const UtilSchema = z.object({
+  name: z.string().regex(/^[a-z]+(-[a-z]+)*$/, 'Must be dash-case'),
+  files: z.object({
+    '*.util.ts': z.string(),
+  }),
+  structure: z.object({
+    isPureFunction: z.boolean(),
+    hasNoSideEffects: z.boolean(),
+  }),
+  restrictions: z.object({
+    cannotBeUsedIn: z.array(z.enum(['entity', 'gateway', 'repository', 'model'])), // Utils não podem ser usados nessas camadas
+  }),
 });
 ```
 
@@ -944,17 +1057,59 @@ describe('Documentation Conformity', () => {
 
 ## 🚀 Comandos CLI Propostos
 
-### Comandos Principais
+### Modo Interativo vs Linha de Comando
+
+O CLI oferece duas formas de uso para máxima flexibilidade:
+
+#### 🔄 Modo Interativo (Padrão)
+Quando executado sem parâmetros completos, entra em modo interativo:
+
+```bash
+# Criação interativa de átomo
+khaos create atom
+? Qual é o nome do átomo? Button
+? Tipo do átomo: Component, Constant, Type ou Util? component
+? Incluir arquivos de teste? sim
+? Adicionar Storybook stories? sim
+? Incluir arquivo de constantes? sim
+? Incluir arquivo de variantes (CVA)? sim
+? Incluir arquivo de mock? sim
+✅ Átomo Button criado com sucesso!
+
+# Criação interativa de feature
+khaos create feature
+? Qual é o nome de sua feature? strategy/investors
+? Esta página é pública ou autenticada? private
+? Posso criar o template também? sim
+? Precisa de layout específico? não
+✅ Feature strategy/investors criada com sucesso!
+
+# Criação interativa de layout
+khaos create layout
+? Qual diretório para o layout? (app)/(private)/strategy
+? Tipo de layout: Stack, Tabs ou Drawer? stack
+? Incluir componentes de navegação? sim
+? Adicionar sidebar? não
+✅ Layout criado em (app)/(private)/strategy!
+```
+
+#### ⚡ Modo Linha de Comando (Avançado)
+Para usuários experientes que preferem comandos completos:
+
 ```bash
 # Criação inteligente
 khaos create --smart "um botão reutilizável"
-khaos create atom button
+khaos create atom button --type=component --with-tests --with-stories --with-constants --with-variants --with-mocks
 khaos create molecule modal --with-atoms=button,icon
 
 # Criação de features com rotas automáticas
-khaos create feature strategy/investors --route-type=private
+khaos create feature strategy/investors --route-type=private --with-template
 khaos create feature auth/login --route-type=public
 khaos create feature dashboard/overview --route-type=private --route-path=dashboard/overview
+
+# Criação de layouts
+khaos create layout (app)/(private)/strategy --type=stack --with-navigation
+khaos create layout (app)/(public)/auth --type=tabs
 
 # Validação
 khaos validate                    # Projeto completo
@@ -1029,7 +1184,7 @@ khaos create feature strategy/investors --route-type=private
 │   ├── strategy-investors.feature.tsx
 │   ├── strategy-investors.types.ts
 │   ├── strategy-investors.use-case.ts
-│   └── repository/
+│   └── _repositories/
 │       └── strategy-investors.repository.ts
 └── src/app/(app)/(private)/strategy/investors.tsx
 

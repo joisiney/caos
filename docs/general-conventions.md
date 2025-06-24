@@ -13,11 +13,15 @@
 - Todos os arquivos `index.ts` servem **exclusivamente para expor elementos reutilizáveis** da camada:
   - Nunca implemente lógica ou declare tipos dentro deles.
   - Eles funcionam como **interface pública do módulo**.
+  - **IMPORTANTE**: Atoms não devem exportar [`variant.ts`](variant.ts), [`stories.tsx`](stories.tsx), [`spec.ts`](spec.ts) no [`index.ts`](index.ts)
 - Tipos globais devem ser definidos em `@types/`, com sufixo `.d.ts`, e **não devem ser exportados**:
   - O `tsconfig.json` deve estar configurado para carregá-los automaticamente.
 - Todos os `Props` de componentes devem incluir obrigatoriamente `testID?: string`.
 - **Query Keys** devem seguir padrão hierárquico: `[entity, operation, ...params]`
 - **Repository hooks** devem usar prefixo `use{Name}Repository` e retornar hooks do React Query
+- **Utils** não podem ser usados em Entity, Gateway, Repository, Model (camadas de dados)
+- **Composition Root**: Atoms, Molecules, Organisms e Templates implementam composition root
+- **Hierarquia corrigida**: App → Feature → Template → Components (Organism → Molecule → Atom)
 - Estas regras globais aplicam-se a todas as camadas do projeto.
 
 ## 🏗️ Convenções para Rotas Automáticas
@@ -116,11 +120,29 @@
 - **Retry**: 3 tentativas para queries, 0 para mutations
 - **Refetch**: `onWindowFocus: false` para melhor UX
 
+### 🏗️ Convenções de Arquitetura Corrigidas
+
+#### 📊 Hierarquia de Dependências
+- **App** → **Feature** → **Template** → **Components**
+- **Organisms** podem fazer chamadas diretas de API
+- **Templates** dependem de Atoms/Molecules/Organisms (não Features)
+- **Features** renderizam exclusivamente templates
+- **Utils** restritos: não podem ser usados em Entity, Gateway, Repository, Model
+
+#### 🧩 Composition Root
+- **Atoms**: Têm composition root + não exportar variant.ts, stories.tsx, spec.ts no index.ts
+- **Molecules**: Têm composition root
+- **Organisms**: Têm composition root + podem fazer chamadas diretas de API
+- **Templates**: Têm composition root + dependem de componentes (não Features)
+
 ### Validação
 - O CLI usa **ESLint** para garantir:
   - Nomenclatura correta (dash-case, UpperCamelCase).
   - Presença de `testID?: string` em `Props`.
   - Uso de **Tailwind CSS** e **Zod** (quando aplicável).
+  - Hierarquia de dependências correta.
+  - Restrições de exports para atoms.
+  - Uso correto de Utils (não em camadas de dados).
 - Commits seguem o padrão **Conventional Commits**:
   - Criação: `feat: add <name> atom`
   - Atualização: `refactor: rename <old-name> to <new-name>`

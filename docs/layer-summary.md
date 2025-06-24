@@ -12,6 +12,8 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
   - *index.ts:* deve exportar `*.atom.tsx`, `*.type.ts`, `*.constant.ts` (opcional), `*.mock.ts` (opcional)
   - **.type.ts:* deve exportar namespace `N{Name}Atom` com `Props` e se tiver constants deve exportar as `keys`
   - Todos os tipos devem estar agrupados na `namespace` no arquivo `.type.ts`
+  - **❌ NUNCA exportar `variant.ts`, `stories.tsx` e `spec.ts` no `index.ts`**
+  - **✅ Pode fazer composition root**
 * **⚠️ Restrição**:
   - *Não pode conter:* `*.use-case.ts`, `*.service.ts`, `_partials/`, `_services/`
 
@@ -29,6 +31,7 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
   - ***.molecule.tsx:* deve implementar obrigatoriamente o hook `*.use-case.ts`
   - Deve importar pelo menos um átomo
   - Services devem estar em `_services/` e nunca importados diretamente no componente
+  - **✅ Pode fazer composition root**
 * **⚠️ Restrição**:
   - *Não pode conter:* `_partials/`, `mock.ts`, `scheme.ts`, `context.tsx`
 
@@ -46,6 +49,8 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
   - ***.organism.tsx:* deve implementar obrigatoriamente o hook `*.use-case.ts`
   - Pode ter átomos exclusivos em `_partials/` que devem ser "burros" (sem lógica)
   - Lógica deve ser centralizada no `use-case.ts`
+  - **✅ Pode fazer chamadas diretas de API**
+  - **✅ Pode fazer composition root**
 
 ---
 
@@ -61,6 +66,8 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
   - Foco em layout visual, orquestra organismos de header, navigation e footer
   - Em features complexas pode usar padrão de composição com `children`
   - Pode exportar `_partials/*.partial.tsx` no index quando necessário
+  - **✅ Pode fazer composition root**
+  - **Dependências:** Atoms, Molecules, Organisms (não Features), Utils
 * **⚠️ Restrição**:
   - *Não pode conter:* `use-case.ts`, `scheme.ts`, `mock.ts`, `context.tsx`, `constant.ts`, `service.ts` e `gateway.ts`
 
@@ -79,6 +86,7 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
   - Deve sempre ter como prefixo o **nome do layout/módulo** a que pertence (ex: `wallet-deposit.feature.tsx`)
   - Representa uma funcionalidade completa da aplicação
   - Use-case orquestra múltiplos services em `_services/`
+  - **❌ Não pode renderizar átomos, moléculas ou organismos diretamente. Renderiza exclusivamente template.**
 
 ---
 
@@ -94,7 +102,8 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
   - *Rotas (*.tsx):* são arquivos simples que exportam features: `export {FeatureName as default} from 'features/feature-name'`
   - Define file-system routing baseado na hierarquia de pastas
   - Layouts são apenas configurações de navegação, sem lógica de negócio
-  - **NÃO devem ter**: `stories.tsx`, `variant.ts`, `mock.ts`, `use-case.ts`, `_services/`
+  - **❌ Não pode ter arquivos**: `stories.tsx` e `variant.ts`
+  - **NÃO devem ter**: `mock.ts`, `use-case.ts`, `_services/`
 
 ---
 
@@ -135,6 +144,9 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 * **Descrição**: Funções utilitárias puras.
 * **Sufixo**: `.util.ts`
 * **Exemplo**: `format-date.util.ts` com `formatDateUtil`
+* **📌 Restrições de Uso**:
+  - **❌ Não pode ser usado em**: Entity, Gateway, Repository, Model
+  - **✅ Pode ser usado em**: Atom, Molecule, Organism, Template, Feature, UseCase, Service
 
 ---
 
@@ -179,10 +191,14 @@ NAME/
 > 🟨 Arquivos marcados como (condicional) são criados apenas se houver necessidade de lógica específica, validação ou orquestração de múltiplos serviços. são criados apenas se um `use-case` ou `scheme` for necessário.
 >
 > ⚠️ **IMPORTANTE - Restrições por layer**:
-> - **Molecules**: Devem ter `use-case.ts` obrigatório + `_services/` opcionais. Não podem ter `_partials/`, `scheme.ts`, `context.tsx`.
-> - **Templates**: Só podem ter a estrutura básica + `_partials/`. Não podem ter `use-case.ts`, `scheme.ts`, `mock.ts`, `context.tsx`, `constant.ts`, `service.ts`.
+> - **Atoms**: ❌ NUNCA exportar `variant.ts`, `stories.tsx` e `spec.ts` no `index.ts`. ✅ Pode fazer composition root.
+> - **Molecules**: Devem ter `use-case.ts` obrigatório + `_services/` opcionais. Não podem ter `_partials/`, `scheme.ts`, `context.tsx`. ✅ Pode fazer composition root.
+> - **Organisms**: ✅ Pode fazer chamadas diretas de API. ✅ Pode fazer composition root.
+> - **Templates**: Só podem ter a estrutura básica + `_partials/`. Não podem ter `use-case.ts`, `scheme.ts`, `mock.ts`, `context.tsx`, `constant.ts`, `service.ts`. ✅ Pode fazer composition root. Dependências: Atoms, Molecules, Organisms (não Features), Utils.
+> - **Features**: ❌ Não pode renderizar átomos, moléculas ou organismos diretamente. Renderiza exclusivamente template. Devem ter prefixo do layout (ex: `wallet-deposit.feature.tsx`).
+> - **Layouts**: ❌ Não pode ter arquivos: `stories.tsx` e `variant.ts`.
+> - **Utils**: ❌ Não pode ser usado em: Entity, Gateway, Repository, Model. ✅ Pode ser usado em: Atom, Molecule, Organism, Template, Feature, UseCase, Service.
 > - **Particles**: Context deve conter apenas provider (sem elementos gráficos).
-> - **Features**: Devem ter prefixo do layout (ex: `wallet-deposit.feature.tsx`).
 > - **Repositories**: Nome SEM prefixo de verbo, export como hook (ex: `useStrategyRepository`).
 
 ```bash
