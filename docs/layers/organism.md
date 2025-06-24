@@ -4,6 +4,8 @@ Organismos são componentes de UI compostos por **nenhuma, uma ou mais molécula
 
 > ❗️Todo organismo deve importar obrigatoriamente o arquivo `use-case.ts`, que orquestra sua lógica interna.
 
+> ✅ Os organismos também podem ser construídos utilizando **composition root**, permitindo que o `index.ts` exponha uma estrutura com `Root`, `Molecule`, `Atom`, ou `Partial`. Este padrão é **opcional** e deve ser adotado quando fizer sentido para a composição do componente.
+
 ---
 
 ### 🔹 Estrutura `src/organisms/{name}`
@@ -21,10 +23,41 @@ Organismos são componentes de UI compostos por **nenhuma, uma ou mais molécula
   * `{name}.stories.tsx`
   * `{name}.spec.ts`
   * `{name}.use-case.ts`
-  * `_partial/{name}.partial.tsx` // Atomos exclusivos, se necessário
+  * `_partials/{name}.partial.tsx` // Atomos exclusivos, se necessário
   * `_services/{service-name}.service.ts` // Se necessário
 
-> ✅ Todos os tipos devem estar agrupados na `namespace` no arquivo `.type.ts`, inclusive os dos `_partial`
+> ✅ Todos os tipos devem estar agrupados na `namespace` no arquivo `.type.ts`, inclusive os dos `_partials`
+
+---
+
+## 🔧 Composition Root (opcional)
+
+Quando adotado, o organismo pode ser exposto como um objeto composto:
+
+```ts
+import {ProfileHeaderOrganism} from './profile-header.organism';
+import {Avatar} from './_partials/avatar.partial';
+import {UsernameMolecule} from '@/molecules/username';
+
+export const ProfileHeaderOrganism = {
+  Root: ProfileHeaderOrganism,
+  Avatar,
+  Username: UsernameMolecule,
+};
+```
+
+> 💡 Use este padrão quando o componente precisar ser **combinado de forma modular**, facilitando a legibilidade e reutilização.
+
+---
+
+## 📄 Exemplo de uso com composition root
+
+```tsx
+<ProfileHeaderOrganism.Root>
+  <ProfileHeaderOrganism.Avatar />
+  <ProfileHeaderOrganism.Username />
+</ProfileHeaderOrganism.Root>
+```
 
 ---
 
@@ -37,11 +70,11 @@ export * from './profile-header.constant'; // Opcional
 export * from './profile-header.mock'; // Opcional
 ```
 
-> ❌ Nunca exportar `stories.tsx`, `spec.ts`, `variant.ts`, ou arquivos da pasta `_partial`
+> ❌ Nunca exportar `stories.tsx`, `spec.ts`, `variant.ts`, ou arquivos da pasta `_partials`
 
 ---
 
-## 📄 Exemplo `_partial/avatar.partial.tsx`
+## 📄 Exemplo `_partials/avatar.partial.tsx`
 
 ```tsx
 import {FC} from 'react';
@@ -84,7 +117,7 @@ export namespace NProfileHeaderOrganism {
 import {FC} from 'react';
 import {View} from 'react-native';
 import {useUseCase} from './profile-header.use-case';
-import {Avatar} from './_partial/avatar.partial';
+import {Avatar} from './_partials/avatar.partial';
 import {UsernameMolecule} from '@/molecules/username';
 import {NProfileHeaderOrganism} from './profile-header.type';
 
@@ -122,7 +155,7 @@ export const useUseCase = () => {
 };
 ```
 
-> ⚠️ Hooks dos `_partial` devem ser orquestrados aqui, não diretamente nos `.partial.tsx`
+> ⚠️ Hooks dos `_partials` devem ser orquestrados aqui, não diretamente nos `.partial.tsx`
 
 ---
 
@@ -186,6 +219,12 @@ describe('Organism: <ProfileHeaderOrganism />', () => {
     const sut = screen.queryByTestId('profile-header-organism');
     expect(sut).toBeNull();
   });
+
+  it('deve aplicar corretamente a classe passada via variant', () => {
+    render(<HocMount className="bg-blue-500" />);
+    const sut = screen.getByTestId('profile-header-organism');
+    expect(sut?.props?.className).toContain('bg-blue-500');
+  });
 });
 ```
 
@@ -205,75 +244,41 @@ khaos delete organism
 ### ✨ Criar Organismo
 
 1. Informar o propósito
-
 2. Nome do organismo
-
 3. Selecionar moléculas (ou nenhuma)
-
-4. Adicionar átomos exclusivos dentro de `_partial` (opcional)
-
+4. Adicionar átomos exclusivos dentro de `_partials` (opcional)
 5. Selecionar camadas opcionais:
 
    * `.constant.ts`, `.variant.ts`
    * `.mock.ts` com `Dto`
    * `.stories.tsx` obrigatório se houver mock
-
 6. Estrutura sugerida:
 
-   ```text
-   src/organisms/
-   ├── profile-header/
-   │   ├── index.ts
-   │   ├── profile-header.organism.tsx
-   │   ├── profile-header.type.ts
-   │   ├── profile-header.constant.ts // Opcional
-   │   ├── profile-header.variant.ts // Opcional
-   │   ├── profile-header.mock.ts // Opcional
-   │   ├── profile-header.stories.tsx
-   │   ├── profile-header.spec.ts
-   │   ├── profile-header.use-case.ts
-   │   ├── _partial/
-   │   │   └── avatar.partial.tsx
-   │   └── _services/
-   │       └── tracking.service.ts // Opcional
-   ```
+```text
+src/organisms/
+├── profile-header/
+│   ├── index.ts
+│   ├── profile-header.organism.tsx
+│   ├── profile-header.type.ts
+│   ├── profile-header.constant.ts // Opcional
+│   ├── profile-header.variant.ts // Opcional
+│   ├── profile-header.mock.ts // Opcional
+│   ├── profile-header.stories.tsx
+│   ├── profile-header.spec.ts
+│   ├── profile-header.use-case.ts
+│   ├── _partials/
+│   │   └── avatar.partial.tsx
+│   └── _services/
+│       └── tracking.service.ts // Opcional
+```
 
 ---
 
 ### 📌 Boas Práticas
 
-* Todos os `_partial` devem ser "burros" (sem lógica).
+* Todos os `_partials` devem ser "burros" (sem lógica).
 * Qualquer lógica deve ser centralizada no `use-case`.
-* Os tipos de `_partial` devem estar definidos dentro de `type.ts`.
-
----
-
-## 🔧 Chamadas de API e Composition Root
-
-Organisms **podem fazer** chamadas diretas de API quando necessário para sua funcionalidade e **podem fazer** composition root.
-
-```typescript
-// ✅ Permitido - chamada direta de API
-const UserList = () => {
-  const [users, setUsers] = useState([]);
-  
-  useEffect(() => {
-    fetch('/api/users').then(setUsers); // ✅ Permitido
-  }, []);
-  
-  return <div>{users.map(user => <UserCard key={user.id} user={user} />)}</div>;
-};
-
-// ✅ Permitido - composition root em organism
-const ProfileHeader: React.FC<ProfileHeaderProps> = (props) => {
-  const analytics = useAnalytics();     // composition root
-  const userService = useUserService(); // composition root
-  
-  return (
-    <View>
-      <Avatar />
-      <UserInfo />
-    </View>
-  );
-};
-```
+* Os tipos de `_partials` devem estar definidos dentro de `type.ts`.
+* Se for usado composition root, o `index.ts` deve exportar um objeto com `Root`, `Atom`, `Molecule`, `Partial`.
+* Testes devem usar `Default.args` da story como base.
+* Sempre testar `testID` e `className` com variant quando houver variante visual.

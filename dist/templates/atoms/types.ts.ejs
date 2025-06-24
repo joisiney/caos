@@ -1,0 +1,32 @@
+import type { ComponentProps } from 'react';
+
+/**
+ * <%= pascalName %> Atom Types
+ * 
+ * @description Type definitions for <%= pascalName %> atom component
+ * @layer atom
+ * @namespace <%= namespace %>
+ */
+
+export interface <%= namespace %>Props extends ComponentProps<'div'> {
+  /**
+   * Test identifier for testing purposes
+   * @default '<%= kebabName %>'
+   */
+  testID?: string;
+  
+  /**
+   * Additional custom props for <%= pascalName %>
+   */
+  // Add your custom props here
+}
+
+export type <%= namespace %>Ref = HTMLDivElement;
+
+export interface <%= namespace %>Config {
+  /**
+   * Default configuration for <%= pascalName %> atom
+   */
+  defaultTestID: string;
+  // Add configuration options here
+}

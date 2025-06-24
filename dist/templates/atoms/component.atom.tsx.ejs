@@ -1,0 +1,22 @@
+import React from 'react';
+import type { <%= namespace %>Props } from './<%= kebabName %>.type';
+
+/**
+ * <%= pascalName %> Atom Component
+ * 
+ * @description <%= description || 'A reusable atom component following Khaos architecture' %>
+ * @layer atom
+ * @namespace <%= namespace %>
+ */
+export function <%= pascalName %>({ testID = '<%= kebabName %>', ...props }: <%= namespace %>Props): React.ReactElement {
+  return (
+    <div testID={testID} {...props}>
+      {/* <%= pascalName %> implementation */}
+      <span>
+        <%= pascalName %> Component
+      </span>
+    </div>
+  );
+}
+
+<%= pascalName %>.displayName = '<%= namespace %>';
