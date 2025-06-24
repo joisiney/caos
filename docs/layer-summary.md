@@ -7,10 +7,13 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 * **Descrição**: Elementos básicos e reutilizáveis da interface.
 * **Sufixo**: `.atom.tsx`
 * **Exemplo**: `button.atom.tsx` com `ButtonAtom`
-* **Arquivos permitidos**: `index.ts`, `*.atom.tsx`, `*.types.ts`, `*.constant.ts` (opcional)
+* **Arquivos permitidos**: `index.ts`, `*.atom.tsx`, `*.type.ts`, `*.constant.ts` (opcional), `*.variant.ts` (opcional), `*.mock.ts` (opcional), `*.stories.tsx`, `*.spec.ts`
 * **📌 Observação**:
-  - *index.ts:* deve exportar `*.atom.tsx`, `*.types.ts`, `*.constant.ts` (opcional)
-  - *.types.ts:* deve exportar `Props` e se tiver constants deve exportar as `keys`
+  - *index.ts:* deve exportar `*.atom.tsx`, `*.type.ts`, `*.constant.ts` (opcional), `*.mock.ts` (opcional)
+  - **.type.ts:* deve exportar namespace `N{Name}Atom` com `Props` e se tiver constants deve exportar as `keys`
+  - Todos os tipos devem estar agrupados na `namespace` no arquivo `.type.ts`
+* **⚠️ Restrição**:
+  - *Não pode conter:* `*.use-case.ts`, `*.service.ts`, `_partials/`, `_services/`
 
 ---
 
@@ -19,13 +22,15 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 * **Descrição**: Composições de atoms com possível lógica local.
 * **Sufixo**: `.molecule.tsx`
 * **Exemplo**: `modal.molecule.tsx` com `ModalMolecule`
-* **Arquivos permitidos**: `index.ts`, `*.molecule.tsx`, `*.types.ts`, `*.constant.ts`, `*.service.ts`
+* **Arquivos permitidos**: `index.ts`, `*.molecule.tsx`, `*.type.ts`, `*.constant.ts` (opcional), `*.variant.ts` (opcional), `*.mock.ts` (opcional), `*.stories.tsx`, `*.spec.ts`, `*.use-case.ts`, `_services/*.service.ts` (opcional)
 * **📌 Observação**:
-  - *index.ts:* deve exportar `*.molecule.tsx`, `*.types.ts`, `*.constant.ts` (opcional)
-  - *.types.ts:* deve exportar `Props` e se tiver constants deve exportar as `keys`
-  - *.molecule.tsx:* deve implementar o hook `*.service.ts`
+  - *index.ts:* deve exportar `*.molecule.tsx`, `*.type.ts`, `*.constant.ts` (opcional), `*.mock.ts` (opcional)
+  - ***.type.ts:* deve exportar namespace `N{Name}Molecule` com `Props` e se tiver constants deve exportar as `keys`
+  - ***.molecule.tsx:* deve implementar obrigatoriamente o hook `*.use-case.ts`
+  - Deve importar pelo menos um átomo
+  - Services devem estar em `_services/` e nunca importados diretamente no componente
 * **⚠️ Restrição**:
-  - *Não pode conter:* `partials/`, `mock.ts`, `scheme.ts`, `use-case.ts`, `context.tsx`
+  - *Não pode conter:* `_partials/`, `mock.ts`, `scheme.ts`, `context.tsx`
 
 ---
 
@@ -34,10 +39,13 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 * **Descrição**: Composições de moléculas e/ou átomos com estrutura semântica.
 * **Sufixo**: `.organism.tsx`
 * **Exemplo**: `profile-header.organism.tsx` com `ProfileHeaderOrganism`
-* **Arquivos permitidos**: `index.ts`, `*.organism.tsx`, `*.types.ts`, `*.test.ts`, `*.mock.ts` (opcional), `use-case.ts` (opcional), `service.ts` (opcional), `scheme.ts` (opcional), `context.tsx` (opcional), `_partials/*.partial.tsx` (opcional), `_services/*.service.tsx` (opcional)
+* **Arquivos permitidos**: `index.ts`, `*.organism.tsx`, `*.type.ts`, `*.constant.ts` (opcional), `*.variant.ts` (opcional), `*.mock.ts` (opcional), `*.stories.tsx`, `*.spec.ts`, `*.use-case.ts`, `*.scheme.ts` (opcional), `*.context.tsx` (opcional), `_partials/*.partial.tsx` (opcional), `_services/*.service.ts` (opcional)
 * **📌 Observação**:
-  - `use-case.ts`  e `service.ts` são comutáveis, ou seja se existir um `service.ts` no root não deve existir um `use-case.ts`, e se existir o `use-case.ts` deve existir obrigatoriamente um `_services/*.service.tsx`
-  - *index.ts:* deve exportar `*.organism.tsx`, `*.types.ts`, `*.constant.ts` (opcional)
+  - *index.ts:* deve exportar `*.organism.tsx`, `*.type.ts`, `*.constant.ts` (opcional), `*.mock.ts` (opcional)
+  - ***.type.ts:* deve exportar namespace `N{Name}Organism` com `Props` e tipos de partials
+  - ***.organism.tsx:* deve implementar obrigatoriamente o hook `*.use-case.ts`
+  - Pode ter átomos exclusivos em `_partials/` que devem ser "burros" (sem lógica)
+  - Lógica deve ser centralizada no `use-case.ts`
 
 ---
 
@@ -46,9 +54,13 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 * **Descrição**: Layouts visuais que orquestram todas as rotas que por sua vez orquestra a exibição de dados e interação das features.
 * **Sufixo**: `.template.tsx`
 * **Exemplo**: `strategy.template.tsx` com `StrategyTemplate`
-* **Arquivos permitidos**: `index.ts`, `*.template.tsx`, `*.types.ts`, `partials/`
+* **Arquivos permitidos**: `index.ts`, `*.template.tsx`, `*.type.ts`, `_partials/*.partial.tsx` (opcional)
 * **📌 Observação**:
-  Em features mais complexar que possuem alto nível de atualização com socket ou mudança de estado, você pode utilizar o index para exportar os `_partials/*.partial.tsx` e transformar o `strategy.template.tsx` em um root, usando o padrão de composição neste cenário o `strategy.template.tsx` deve receber obrigatoriamente um `children` para que possa receber os elementos `Partial`
+  - *index.ts:* deve exportar `*.template.tsx`, `*.type.ts`
+  - ***.type.ts:* deve exportar namespace `N{Name}Template` com `Props`
+  - Foco em layout visual, orquestra organismos de header, navigation e footer
+  - Em features complexas pode usar padrão de composição com `children`
+  - Pode exportar `_partials/*.partial.tsx` no index quando necessário
 * **⚠️ Restrição**:
   - *Não pode conter:* `use-case.ts`, `scheme.ts`, `mock.ts`, `context.tsx`, `constant.ts`, `service.ts` e `gateway.ts`
 
@@ -59,19 +71,30 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 * **Descrição**: Representa uma funcionalidade completa da aplicação.
 * **Sufixo**: `.feature.tsx`
 * **Exemplo**: `wallet-deposit.feature.tsx` com `WalletDepositFeature`
-* **Arquivos permitidos**: `index.ts`, `*.feature.tsx`, `*.types.ts`, `use-case.ts`, `_services/*.service.tsx`
-ℹ️ **Observação**:
-  - Deve sempre ter como prefixo o **nome do layout/módulo** a que pertence (ex: `wallet-...`)
-  - Uma `features` pode conter um `*.use-case.ts` que orquestra múltiplos `services`, ou conter apenas um `*.service.ts` na raiz para lógica mais simples. Se houver múltiplos serviços, o uso de `*.use-case.ts` é obrigatório.
+* **Arquivos permitidos**: `index.ts`, `*.feature.tsx`, `*.type.ts`, `*.use-case.ts`, `_services/*.service.tsx`
+* **📌 Observação**:
+  - *index.ts:* deve exportar `*.feature.tsx`, `*.type.ts`
+  - ***.type.ts:* deve exportar namespace `N{Name}Feature` com `Props`
+  - ***.feature.tsx:* deve implementar obrigatoriamente o hook `*.use-case.ts`
+  - Deve sempre ter como prefixo o **nome do layout/módulo** a que pertence (ex: `wallet-deposit.feature.tsx`)
+  - Representa uma funcionalidade completa da aplicação
+  - Use-case orquestra múltiplos services em `_services/`
 
 ---
 
 ### 🔹 `src/layouts/*`
 
-* **Descrição**: Define a navegação e estrutura dos módulos da aplicação.
-* **Sufixo**: `.layout.tsx`
-* **Exemplo**: `wallet.layout.tsx` com `WalletLayout`
-* **Arquivos permitidos**: `index.ts`, `*.layout.tsx`, `*.types.ts`, `use-case.ts`, `_services/*.service.tsx`
+* **Descrição**: Configurações de navegação usando Expo Router file-system routing. Layouts são apenas configurações de Stack, Tabs ou Drawer.
+* **Arquivo principal**: `_layout.tsx` (padrão Expo Router)
+* **Exemplo**: `wallet/_layout.tsx` com `WalletLayout`
+* **Arquivos obrigatórios**: `_layout.tsx`
+* **Arquivos opcionais**: `index.ts`, `*.tsx` (rotas), `*.type.ts`, `*.constant.ts`, `*.spec.ts`
+* **📌 Observação**:
+  - *_layout.tsx:* implementa apenas Stack, Tabs ou Drawer do Expo Router
+  - *Rotas (*.tsx):* são arquivos simples que exportam features: `export {FeatureName as default} from 'features/feature-name'`
+  - Define file-system routing baseado na hierarquia de pastas
+  - Layouts são apenas configurações de navegação, sem lógica de negócio
+  - **NÃO devem ter**: `stories.tsx`, `variant.ts`, `mock.ts`, `use-case.ts`, `_services/`
 
 ---
 
@@ -80,9 +103,13 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 * **Descrição**: Serviços, constantes e contextos compartilháveis entre features.
 * **Sufixo**: `.particle.tsx`
 * **Exemplo**: `scroll-button.particle.tsx` com `ScrollButtonParticle`
-* **Arquivos permitidos**: `index.ts`, `*.context.tsx`, `*.types.ts`, `_services/*.service.tsx`
+* **Arquivos permitidos**: `index.ts`, `*.particle.tsx`, `*.type.ts`, `*.context.tsx` (opcional), `*.constant.ts` (opcional), `*.mock.ts` (opcional), `*.stories.tsx`, `*.spec.ts`, `_services/*.service.ts` (opcional)
 * **📌 Observação**:
-  - Não deve conter elementos gráficos no `context` deve haver apenas o `provider`
+  - *index.ts:* deve exportar `*.particle.tsx`, `*.type.ts`, `*.context.tsx` (opcional), `*.constant.ts` (opcional), `*.mock.ts` (opcional)
+  - ***.type.ts:* deve exportar namespace `N{Name}Particle` com `Props`
+  - Context deve conter apenas provider (sem elementos gráficos)
+  - Serviços, constantes e contextos compartilháveis entre features
+  - Devem ser stateless quando possível
 
 ---
 
@@ -133,7 +160,7 @@ Cada layer possui uma função clara dentro da arquitetura e deve seguir conven�
 ```bash
 NAME/
 ├── NAME.LAYER.tsx
-├── NAME.types.ts
+├── NAME.type.ts
 ├── index.ts
 ├── NAME.test.ts (opcional)
 ├── NAME.mock.ts (opcional)
@@ -152,8 +179,11 @@ NAME/
 > 🟨 Arquivos marcados como (condicional) são criados apenas se houver necessidade de lógica específica, validação ou orquestração de múltiplos serviços. são criados apenas se um `use-case` ou `scheme` for necessário.
 >
 > ⚠️ **IMPORTANTE - Restrições por layer**:
-> - **Molecules**: Só podem ter a estrutura básica + `service.ts` e `constant.ts`. Não podem ter partials, use-case, scheme, mock ou context.
-> - **Templates**: Só podem ter a estrutura básica + `partials/`. Não podem ter use-case, scheme, mock, context, constant ou service.
+> - **Molecules**: Devem ter `use-case.ts` obrigatório + `_services/` opcionais. Não podem ter `_partials/`, `scheme.ts`, `context.tsx`.
+> - **Templates**: Só podem ter a estrutura básica + `_partials/`. Não podem ter `use-case.ts`, `scheme.ts`, `mock.ts`, `context.tsx`, `constant.ts`, `service.ts`.
+> - **Particles**: Context deve conter apenas provider (sem elementos gráficos).
+> - **Features**: Devem ter prefixo do layout (ex: `wallet-deposit.feature.tsx`).
+> - **Repositories**: Nome SEM prefixo de verbo, export como hook (ex: `useStrategyRepository`).
 
 ```bash
 src/
@@ -162,8 +192,8 @@ src/
 ├── organisms/
 ├── templates/
 ├── features/
-│   └── wallet/
-│       └── wallet.feature.tsx
+│   └── wallet-deposit/
+│       └── wallet-deposit.feature.tsx
 ├── layouts/
 ├── particles/
 ├── models/
@@ -195,7 +225,7 @@ src/
 
 ## Exemplos de Implementação
 
-### 📄 Exemplo `modal.types.ts`
+### 📄 Exemplo `modal.type.ts`
 
 ```ts
 import { schema } from './modal.scheme';

@@ -1,1 +1,0 @@
-export const BUTTON = {BUTTON:'NAME'} as const;
