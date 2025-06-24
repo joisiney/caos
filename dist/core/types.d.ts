@@ -1,17 +1,48 @@
+/**
+ * Core types for Khaos CLI
+ */
 export type LayerType = 'atom' | 'molecule' | 'organism' | 'template' | 'feature' | 'layout' | 'particle' | 'model' | 'entity' | 'util' | 'gateway' | 'repository';
+export interface ProjectConfig {
+    name: string;
+    version: string;
+    framework: 'react' | 'vue' | 'angular';
+    typescript: boolean;
+    layers: LayerType[];
+    conventions: ConventionConfig;
+}
+export interface ConventionConfig {
+    naming: 'kebab-case' | 'camelCase' | 'PascalCase';
+    fileExtensions: {
+        component: '.tsx' | '.jsx' | '.vue';
+        style: '.css' | '.scss' | '.module.css';
+        test: '.test.ts' | '.spec.ts';
+    };
+    directories: {
+        components: string;
+        styles: string;
+        tests: string;
+    };
+}
+export interface ComponentInfo {
+    name: string;
+    layer: LayerType;
+    path: string;
+    files: string[];
+    dependencies: string[];
+}
+export interface ValidationError {
+    type: 'error' | 'warning' | 'info';
+    message: string;
+    file?: string;
+    line?: number;
+    column?: number;
+    rule?: string;
+}
 export interface ValidationResult {
     valid: boolean;
     errors: ValidationError[];
-    warnings: ValidationWarning[];
-    metadata: ValidationMetadata;
-}
-export interface ValidationError {
-    code: string;
-    message: string;
-    file: string;
-    line?: number;
-    column?: number;
-    severity: 'error' | 'warning';
+    warnings: ValidationError[];
+    info: ValidationError[];
 }
 export interface ValidationWarning {
     code: string;

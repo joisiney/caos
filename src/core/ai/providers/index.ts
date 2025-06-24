@@ -2,7 +2,7 @@
  * AI Providers module exports
  */
 
-export { AIProvider } from './ai-provider.interface';
+export type { AIProvider } from './ai-provider.interface';
 export { OpenAIProvider } from './openai-provider';
 export { AnthropicProvider } from './anthropic-provider';
 export { OpenRouterProvider } from './openrouter-provider';

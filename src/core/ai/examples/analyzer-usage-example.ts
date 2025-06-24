@@ -7,7 +7,7 @@
 import { ProviderFactory } from '../providers/provider-factory';
 import {
   createAnalyzerSuite,
-  performCompleteAnalysis,
+  performComprehensiveAnalysis,
   DescriptionAnalyzer,
   LayerClassifier,
   NamingAnalyzer,
@@ -255,7 +255,7 @@ async function exampleCompleteWorkflow() {
     
     console.log(`Analyzing: "${description}"`);
     
-    const result = await performCompleteAnalysis(description, aiProvider, context);
+    const result = await performComprehensiveAnalysis(description, aiProvider, context);
     
     console.log('\nComplete Analysis Result:');
     console.log('='.repeat(50));

@@ -280,14 +280,14 @@ export class VariableExtractor {
    */
   private hasVariants(analysis: LayerAnalysis): boolean {
     return analysis.props?.some(p => p.name.includes('variant')) || 
-           analysis.metadata.features?.includes('variants');
+           analysis.metadata['features']?.includes('variants');
   }
 
   /**
    * Check if component needs utility imports
    */
   private needsUtilityImports(analysis: LayerAnalysis): boolean {
-    return analysis.metadata.features?.includes('styled') || 
+    return analysis.metadata['features']?.includes('styled') || 
            this.hasVariants(analysis);
   }
 
@@ -324,7 +324,7 @@ export class VariableExtractor {
 
       case 'particle':
         // Context-related imports
-        if (analysis.metadata.features?.includes('context')) {
+        if (analysis.metadata['features']?.includes('context')) {
           imports.push({
             what: 'createContext, useContext',
             from: 'react',

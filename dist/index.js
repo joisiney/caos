@@ -19,13 +19,10 @@ program
     .name('khaos')
     .description('CLI para gerar arquivos baseados na arquitetura do projeto khaos')
     .version('1.0.0');
-// Placeholder commands - will be implemented in Sprint 1
-program
-    .command('create')
-    .description('Create components with AI assistance')
-    .action(() => {
-    console.log(chalk_1.default.yellow('⚠️  Create command will be implemented in Sprint 1'));
-});
+// Import and register commands
+const create_command_1 = require("./commands/create/create.command");
+// Register create command with smart functionality
+create_command_1.CreateCommand.register(program);
 program
     .command('validate')
     .description('Validate project architecture')

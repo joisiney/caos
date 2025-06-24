@@ -1,31 +1,15 @@
 /**
- * <%= pascalName %> Atom - Index Export
+ * <%- pascalName %> Atom
  * 
- * @description Main export file for <%= pascalName %> atom component
+ * <%- description %>
+ * 
  * @layer atom
- * @namespace <%= namespace %>
- * 
- * Note: Following Khaos architecture, atoms should NOT export:
- * - variant.ts files
- * - stories.tsx files  
- * - spec.ts files
- * These files exist but are not part of the public API
+ * @generated <%- new Date().toISOString() %>
  */
 
-// Main component export
-export { <%= pascalName %> } from './<%= kebabName %>.atom';
-
-// Type exports
-export type {
-  <%= namespace %>Props,
-  <%= namespace %>Ref,
-  <%= namespace %>Config,
-} from './<%= kebabName %>.type';
-
-// Constants export (if exists)
-<% if (hasConstants) { %>
-export * from './<%= kebabName %>.constant';
-<% } %>
-
-// Default export for convenience
-export { <%= pascalName %> as default } from './<%= kebabName %>.atom';
+export { <%- pascalName %> as default } from './<%- kebabName %>.atom';
+export { <%- pascalName %> } from './<%- kebabName %>.atom';
+export type { <%- pascalName %>Props } from './types';
+<% if (features.includes('variants')) { -%>
+export { <%- camelName %>Variants, <%- camelName %>Sizes } from './types';
+<% } -%>

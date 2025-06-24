@@ -1,22 +1,27 @@
 import React from 'react';
-import type { <%= namespace %>Props } from './<%= kebabName %>.type';
+import { <%- pascalName %>Props } from './types';
 
 /**
- * <%= pascalName %> Atom Component
+ * <%- description %>
  * 
- * @description <%= description || 'A reusable atom component following Khaos architecture' %>
+ * @component <%- pascalName %>
  * @layer atom
- * @namespace <%= namespace %>
  */
-export function <%= pascalName %>({ testID = '<%= kebabName %>', ...props }: <%= namespace %>Props): React.ReactElement {
-  return (
-    <div testID={testID} {...props}>
-      {/* <%= pascalName %> implementation */}
-      <span>
-        <%= pascalName %> Component
-      </span>
-    </div>
-  );
-}
+export const <%- pascalName %> = React.forwardRef<HTMLElement, <%- pascalName %>Props>(
+  ({ children, className, ...props }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={className}
+        data-testid="<%- kebabName %>"
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+);
 
-<%= pascalName %>.displayName = '<%= namespace %>';
+<%- pascalName %>.displayName = '<%- pascalName %>';
+
+export default <%- pascalName %>;

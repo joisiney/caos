@@ -4,6 +4,8 @@
  * Intelligent code generation system that creates components following Khaos architecture
  */
 
+import { AIProvider } from '../providers/ai-provider.interface';
+
 // Core generators
 export { TemplateEngine, templateEngine } from './template-engine';
 export { TemplateSelector, DefaultTemplateRegistry, createTemplateSelector } from './template-selector';
@@ -36,6 +38,13 @@ export type {
  * Creates a complete generator system with all components
  */
 export function createGeneratorSystem(aiProvider?: any) {
+  const { TemplateEngine } = require('./template-engine');
+  const { createTemplateSelector } = require('./template-selector');
+  const { VariableExtractor } = require('./variable-extractor');
+  const { createValidationGenerator } = require('./validation-generator');
+  const { FileGenerator } = require('./file-generator');
+  const { createCodeGenerator } = require('./code-generator');
+
   const templateEngine = new TemplateEngine();
   const templateSelector = createTemplateSelector(aiProvider);
   const variableExtractor = new VariableExtractor();
@@ -70,11 +79,18 @@ export const generators = {
   /**
    * Get default generator instances
    */
-  default: {
-    templateEngine,
-    variableExtractor,
-    fileGenerator,
-    codeGenerator,
+  default: () => {
+    const { TemplateEngine } = require('./template-engine');
+    const { VariableExtractor } = require('./variable-extractor');
+    const { FileGenerator } = require('./file-generator');
+    const { createCodeGenerator } = require('./code-generator');
+    
+    return {
+      templateEngine: new TemplateEngine(),
+      variableExtractor: new VariableExtractor(),
+      fileGenerator: new FileGenerator(),
+      codeGenerator: createCodeGenerator(),
+    };
   },
 };
 
@@ -114,4 +130,45 @@ export default {
   createGeneratorSystem,
   generators,
   generatorUtils,
-}; 
+};
+
+/**
+ * Create a complete generator suite
+ */
+export function createGeneratorSuite(aiProvider?: AIProvider) {
+  const { TemplateEngine } = require('./template-engine');
+  const { TemplateSelector, DefaultTemplateRegistry } = require('./template-selector');
+  const { VariableExtractor } = require('./variable-extractor');
+  const { ValidationGenerator } = require('./validation-generator');
+  const { FileGenerator } = require('./file-generator');
+  const { createCodeGenerator } = require('./code-generator');
+
+  const templateEngine = new TemplateEngine();
+  const templateRegistry = new DefaultTemplateRegistry();
+  const templateSelector = new TemplateSelector(templateRegistry, aiProvider);
+  const variableExtractor = new VariableExtractor();
+  const validationGenerator = new ValidationGenerator(aiProvider);
+  const fileGenerator = new FileGenerator();
+  const codeGenerator = createCodeGenerator(aiProvider);
+
+  return {
+    templateEngine,
+    templateSelector,
+    variableExtractor,
+    validationGenerator,
+    fileGenerator,
+    codeGenerator,
+  };
+}
+
+/**
+ * Generator suite interface
+ */
+export interface GeneratorSuite {
+  templateEngine: any;
+  templateSelector: any;
+  variableExtractor: any;
+  validationGenerator: any;
+  fileGenerator: any;
+  codeGenerator: any;
+} 
